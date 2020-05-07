@@ -1,0 +1,6 @@
+[submodule "lib/allonet"]
+	path = lib/allonet
+	url = https://github.com/alloverse/allonet.git
+[submodule "lib/alloui-lua"]
+	path = lib/alloui-lua
+	url = https://github.com/alloverse/alloui-lua.git
