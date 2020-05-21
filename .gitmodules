@@ -4,3 +4,6 @@
 [submodule "lib/alloui-lua"]
 	path = lib/alloui-lua
 	url = https://github.com/alloverse/alloui-lua.git
+[submodule "lib/cairo"]
+	path = lib/cairo
+	url = https://github.com/luapower/cairo.git

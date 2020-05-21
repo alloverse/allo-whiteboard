@@ -4,9 +4,10 @@ libDir = srcDir.."/../lib"
 
 package.cpath = string.format("%s;%s/?.so;%s/?.dylib", package.cpath, srcDir, srcDir)
 package.path = string.format(
-    "%s;%s/?.lua;%s/alloui-lua/lua/?.lua;%s/alloui-lua/lib/cpml/?.lua;%s/alloui-lua/lib/pl/lua/?.lua",
+    "%s;%s/?.lua;%s/alloui-lua/lua/?.lua;%s/alloui-lua/lib/cpml/?.lua;%s/alloui-lua/lib/pl/lua/?.lua;%s/cairo/?.lua",
     package.path,
     srcDir,
+    libDir,
     libDir,
     libDir,
     libDir
