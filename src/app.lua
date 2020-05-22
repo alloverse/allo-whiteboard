@@ -21,15 +21,18 @@ function Whiteboard:_init(bounds)
   self:super(bounds)
   print("initiating whiteboard!")
 
-  self.sr = cairo.image_surface(cairo.cairo_format("rgb24"), 128, 128)
-  self.cr = self.sr:context()
+  --self.sr = cairo.image_surface(cairo.cairo_format("rgb24"), 128, 128)
 
+  self.sr = cairo.image_surface(cairo.cairo_format("rgb24"), bounds.size.width*128, bounds.size.height*128)
+
+  print("bounds.size.width: " .. bounds.size.width)
+  print("bounds.size.height: " .. bounds.size.height)
+  
+  self.cr = self.sr:context()
 end
 
 function Whiteboard:specification()
-
-
-  print(self.sr:save_png("whiteboard.png"))
+  self.sr:save_png("whiteboard.png")
 
   local fh = io.open("whiteboard.png", "rb")
   local image_to_convert = fh:read("*a")
@@ -37,8 +40,7 @@ function Whiteboard:specification()
 
   local encoded_image = ui.util.base64_encode(image_to_convert)
 
-  print(encoded_image)
-
+  --print(encoded_image)
 
   local s = self.bounds.size
   local w2 = s.width / 2.0
@@ -46,10 +48,10 @@ function Whiteboard:specification()
   local mySpec = tablex.union(ui.View.specification(self), {
       geometry = {
           type = "inline",
-                --   #bl                   #br                  #tl                    #tr
-          vertices= {{w2, -h2, 0.0},       {w2, h2, 0.0},       {-w2, -h2, 0.0},       {-w2, h2, 0.0}},
-          uvs=      {{0.0, 0.0},           {1.0, 0.0},          {0.0, 1.0},            {1.0, 1.0}},
-          triangles= {{0, 3, 1}, {0, 2, 3}, {1, 3, 0}, {3, 2, 0}},
+          --           #bl                #br               #tl                #tr
+          vertices=   {{w2, -h2, 0.0},    {w2, h2, 0.0},    {-w2, -h2, 0.0},   {-w2, h2, 0.0}},
+          uvs=        {{0.0, 0.0},        {1.0, 0.0},       {0.0, 1.0},        {1.0, 1.0}},
+          triangles=  {{0, 3, 1},         {0, 2, 3},        {1, 3, 0},         {3, 2, 0}},
           texture= encoded_image
       },
       collider= {
@@ -64,30 +66,33 @@ end
 function Whiteboard:onInteraction(inter, body, sender)
     if body[1] == "point" then
         --print("pointing at the whiteboard");
+        local worldPoint = vec3(body[3][1], body[3][2], body[3][3])
+        
+        -- local inverted = mat4.invert({}, self.bounds.pose.transform)
+        -- local localPoint = vec3(mat4.mul_vec4({}, inverted, {worldPoint.x, worldPoint.y, worldPoint.z, 1}))
+
+        local localPosition = vec3(self.bounds.pose.transform)
+        print("======================")
+        print(self.bounds.pose.transform)
+        print(localPosition)
+
+        local localPoint = worldPoint - localPosition
+        
+        local localPointTopLeftOrigo = vec3(self.bounds.size.width/2 - localPoint.x, self.bounds.size.height/2 - localPoint.y, self.bounds.size.depth/2 - localPoint.z)
+        normalizedLocalPointTopLeftOrigo = vec3(localPointTopLeftOrigo.x / self.bounds.size.width, localPointTopLeftOrigo.y / self.bounds.size.height, localPointTopLeftOrigo.z / self.bounds.size.depth)
+
+        print("----------------------")
+        print(worldPoint)
+        print(localPoint)
+        print(normalizedLocalPointTopLeftOrigo)
 
         if isReadyForDrawing then
           --print("Drawing on the whiteboard...");
-          
-          local worldPoint = vec3(body[3][1], body[3][2], body[3][3])
-
-          local inverted = mat4.invert({}, self.bounds.pose.transform)
-
-          local localPoint = vec3(mat4.mul_vec4({}, inverted, {worldPoint.x, worldPoint.y, worldPoint.z, 1}))
-          
-          local localPointTopLeftOrigo = vec3(self.bounds.size.width/2 - localPoint.x, self.bounds.size.height/2 - localPoint.y, self.bounds.size.depth/2 - localPoint.z)
-          normalizedLocalPointTopLeftOrigo = vec3(localPointTopLeftOrigo.x / self.bounds.size.width, localPointTopLeftOrigo.y / self.bounds.size.height, localPointTopLeftOrigo.z / self.bounds.size.depth)
-
-          -- print("----------------")
-          -- print(worldPoint)
-          -- print(localPoint)
-          -- print(normalizedLocalPointTopLeftOrigo)
-
           self:drawPixel(normalizedLocalPointTopLeftOrigo.x * 128, normalizedLocalPointTopLeftOrigo.y * 128)
-
         end
 
     elseif body[1] == "point-exit" then
-        print("No longer pointing at the whiteboard");
+        -- print("No longer pointing at the whiteboard");
 
     elseif body[1] == "poke" then
         -- set whiteboard to be "ready to recieve point events" when picking up "point" interactions
@@ -101,8 +106,8 @@ function Whiteboard:drawPixel(x, y)
   print("x: " .. x .. " y: " .. y)
 
 
-  self.cr:rgb(255, 0, 255)
-  self.cr:rectangle(x, y, 10, 10)
+  self.cr:rgb(255, 255, 255)
+  self.cr:circle(x, y, 8)
   self.cr:fill()
   
   self:broadcastTextureChanged()
@@ -115,7 +120,7 @@ function Whiteboard:broadcastTextureChanged()
 end
 
 
-local whiteboardView = Whiteboard(ui.Bounds(1,0,0,2,1,0.1))
+local whiteboardView = Whiteboard(ui.Bounds(1, 1, 0, 2, 1, 0.1))
 
 
 app.mainView = whiteboardView
