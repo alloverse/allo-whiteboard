@@ -33,30 +33,7 @@ function Whiteboard:_init(bounds)
   self.sr = cairo.image_surface(cairo.cairo_format("rgb24"), bounds.size.width * BOARD_RESOLUTION, bounds.size.height * BOARD_RESOLUTION)  
   self.cr = self.sr:context()
 
-  -- DRAWS ORIENTATION MARKERS
-  self.cr:rgb(255, 0, 0)    -- RED, TOP LEFT
-  self.cr:circle(  0,    0,  16)
-  self.cr:fill()
-
-  self.cr:rgb(0, 255, 0)    -- GREEN, TOP RIGHT
-  self.cr:circle(  bounds.size.width*BOARD_RESOLUTION,  0,  16)
-  self.cr:fill()
-
-  self.cr:rgb(255, 255, 0)  -- YELLOW, BOTTOM LEFT
-  self.cr:circle(  0,    bounds.size.height*BOARD_RESOLUTION, 16)
-  self.cr:fill()
-
-  self.cr:rgb(255, 0, 255)  -- MAGENTA, BOTTOM RIGHT
-  self.cr:circle(  bounds.size.width*BOARD_RESOLUTION,  bounds.size.height*BOARD_RESOLUTION, 16)
-  self.cr:fill()
-
-  -- DRAWS A BORDER ALONG THE EDGES OF THE WHITEBOARD
-  self.cr:rgb(255, 255, 255)  -- WHITE
-  self.cr:rectangle(0, 0, 5, bounds.size.height*BOARD_RESOLUTION)
-  self.cr:rectangle(bounds.size.width*BOARD_RESOLUTION-5, 0, 5, bounds.size.height*BOARD_RESOLUTION)
-  self.cr:rectangle(0, 0, bounds.size.width*BOARD_RESOLUTION, 5)
-  self.cr:rectangle(0, bounds.size.height*BOARD_RESOLUTION-5, bounds.size.width*BOARD_RESOLUTION, 5)
-  self.cr:fill()
+  self:resetBoard()
 
 end
 
@@ -122,38 +99,80 @@ function Whiteboard:onInteraction(inter, body, sender)
 end
 
 function Whiteboard:drawPixel(x, y)
-  --print("x: " .. x .. " y: " .. y)
-
   self.cr:rgb(255, 255, 255)
   self.cr:circle(x, y, 5)
   self.cr:fill()
   
   self.isDirty = true
-  --self:broadcastTextureChanged()
-
 end
 
 function Whiteboard:broadcastTextureChanged()
+  if self.app == nil then return end
+
   local geom = self:specification().geometry
   self:updateComponents({geometry = geom})
+  self.isDirty = false
 end
 
 function Whiteboard:sendIfDirty()
   if self.isDirty then
     self:broadcastTextureChanged()
-    self.isDirty = false
   end
+end
+
+function Whiteboard:resetBoard()
+  print("Resetting board!")
+  
+  -- RESETS THE BOARD TO ALL BLACK
+  self.cr:rgb(0, 0, 0)
+  self.cr:paint()
+
+  -- DRAWS ORIENTATION MARKERS
+  self.cr:rgb(255, 0, 0)    -- RED, TOP LEFT
+  self.cr:circle(0, 0, 16)
+  self.cr:fill()
+
+  self.cr:rgb(0, 255, 0)    -- GREEN, TOP RIGHT
+  self.cr:circle(self.bounds.size.width*BOARD_RESOLUTION, 0, 16)
+  self.cr:fill()
+
+  self.cr:rgb(255, 255, 0)  -- YELLOW, BOTTOM LEFT
+  self.cr:circle(0, self.bounds.size.height*BOARD_RESOLUTION, 16)
+  self.cr:fill()
+
+  self.cr:rgb(255, 0, 255)  -- MAGENTA, BOTTOM RIGHT
+  self.cr:circle(self.bounds.size.width*BOARD_RESOLUTION, self.bounds.size.height*BOARD_RESOLUTION, 16)
+  self.cr:fill()
+
+  -- DRAWS A BORDER ALONG THE EDGES OF THE WHITEBOARD
+  self.cr:rgb(255, 255, 255)  -- WHITE
+  self.cr:rectangle(0, 0, 5, self.bounds.size.height*BOARD_RESOLUTION)
+  self.cr:rectangle(self.bounds.size.width*BOARD_RESOLUTION-5, 0, 5, self.bounds.size.height*BOARD_RESOLUTION)
+  self.cr:rectangle(0, 0, self.bounds.size.width*BOARD_RESOLUTION, 5)
+  self.cr:rectangle(0, self.bounds.size.height*BOARD_RESOLUTION-5, self.bounds.size.width*BOARD_RESOLUTION, 5)
+  self.cr:fill()
+
+  self:broadcastTextureChanged()
 end
 
 local whiteboardView = Whiteboard(ui.Bounds(1.5, 1, 0, 2, 1, 0.1))
 
 -- ADDS THE GRAB HANDLE
-local pi = 3.14159
-local grabHandle = ui.GrabHandle(ui.Bounds( -0.5, 0.5, 0.3,   0.2, 0.2, 0.2))
+local grabHandle = ui.GrabHandle(ui.Bounds( -0.5, -0.6, 0.3,   0.2, 0.2, 0.2))
 whiteboardView:addSubview(grabHandle)
+
+-- ADDS THE RESET BUTTON
+local resetButton = ui.Button(ui.Bounds(0, -0.4, 0.5,   0.2, 0.2, 0.2):rotate(math.pi/4, 1, 0 ,0))
+resetButton.texture = " iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAIAAAAlC+aJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAG1SURBVGhD1Zm7TgMxEAAD/AsF/4DEd/ItFEhUiBaJBlEDLbRITGQrOo6zz69d746iyGkuM94kd0nObp8eD265e3s9j0uHYM+914BgDy4DTvbgL2BpD84CVvbgKeC/PbgJ2LQHHwEpe3AQkLEH6wF5ezAdsGsPpddC799fcaXF8+dHXGWRncDP/QO3+EAGqYClumiDSID0ri8ZH6BpD4MDlO1hZIC+PQwLmGIPYwJm2cOAE5mE/cXNtdKJTGjvyw/bFZB6GvYvruRpD8jbqzU0BljY+0DLm1jIfnXYl6vLuMpSPQE7ex+oC7BmDxUBBu2h/VMoMNceSgM2t3+6PfROYDqlAZubnXpXaNI7gekNFQGpV/zchroJGGyofglZa2j8QpPSXeZ1JkldCwXszKH9UyjfoFbSHgAW5tAVAKmGTsoPO+bn9d0tb+hU/XldaA4ljAmAWQ3DAmBKw8gA0G8YHADKDeMDQLNBJABoOGWI9kgFBJYZQsgGKFB6Ji7503wKRRMwaw/7AZbtYSfAuD0kA1C3bw/bAS7UAxsBjuxhHeDLHv4EuLOHGIC6R3s4BjhVP3I4/AJOwc2Q7k4s+AAAAABJRU5ErkJggg=="
+resetButton.onActivated = function()
+  whiteboardView:resetBoard()
+end
+whiteboardView:addSubview(resetButton)
+
 
 app.mainView = whiteboardView
 
+-- STARTS A LOOP CHECKING FOR CHANGES
 app:scheduleAction(0.1, true, function() 
   whiteboardView:sendIfDirty()
 end)
