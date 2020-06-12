@@ -168,7 +168,7 @@ end
 local whiteboardView = Whiteboard(ui.Bounds(1.5, 1, 0,   2, 1, 0.1))
 
 -- ADDS THE GRAB HANDLE
-local grabHandle = ui.GrabHandle(ui.Bounds(0, -0.9, 0.5,   0.2, 0.2, 0.2))
+local grabHandle = ui.GrabHandle(ui.Bounds(-0.9, -0.5, 0.5,   0.2, 0.2, 0.2))
 whiteboardView:addSubview(grabHandle)
 
 -- ADDS THE RESET BUTTON
