@@ -29,6 +29,7 @@ function Whiteboard:_init(bounds)
 
   self.isReadyForDrawing = false
   self.isDirty = false;
+  self.brushSize = 3;
 
   self.sr = cairo.image_surface(cairo.cairo_format("rgb24"), bounds.size.width * BOARD_RESOLUTION, bounds.size.height * BOARD_RESOLUTION)  
   self.cr = self.sr:context()
@@ -99,8 +100,10 @@ function Whiteboard:onInteraction(inter, body, sender)
 end
 
 function Whiteboard:drawPixel(x, y)
+  -- print("x: ", x, " y: ", y)
+
   self.cr:rgb(255, 255, 255)
-  self.cr:circle(x, y, 5)
+  self.cr:circle(x, y, self.brushSize)
   self.cr:fill()
   
   self.isDirty = true
@@ -120,10 +123,15 @@ function Whiteboard:sendIfDirty()
   end
 end
 
+function Whiteboard:setBrushSize(newbrushSize)
+  self.brushSize = newbrushSize
+end
+
+
 function Whiteboard:resetBoard()
   print("Resetting board!")
   
-  -- RESETS THE BOARD TO ALL BLACK
+  -- DRAWS THE WHOLE BOARD BLACK
   self.cr:rgb(0, 0, 0)
   self.cr:paint()
 
@@ -155,25 +163,42 @@ function Whiteboard:resetBoard()
   self:broadcastTextureChanged()
 end
 
-local whiteboardView = Whiteboard(ui.Bounds(1.5, 1, 0, 2, 1, 0.1))
+
+
+local whiteboardView = Whiteboard(ui.Bounds(1.5, 1, 0,   2, 1, 0.1))
 
 -- ADDS THE GRAB HANDLE
-local grabHandle = ui.GrabHandle(ui.Bounds( -0.5, -0.6, 0.3,   0.2, 0.2, 0.2))
+local grabHandle = ui.GrabHandle(ui.Bounds(0, -0.9, 0.5,   0.2, 0.2, 0.2))
 whiteboardView:addSubview(grabHandle)
 
 -- ADDS THE RESET BUTTON
 local resetButton = ui.Button(ui.Bounds(0, -0.4, 0.5,   0.2, 0.2, 0.2):rotate(math.pi/4, 1, 0 ,0))
-resetButton.texture = " iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAIAAAAlC+aJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAG1SURBVGhD1Zm7TgMxEAAD/AsF/4DEd/ItFEhUiBaJBlEDLbRITGQrOo6zz69d746iyGkuM94kd0nObp8eD265e3s9j0uHYM+914BgDy4DTvbgL2BpD84CVvbgKeC/PbgJ2LQHHwEpe3AQkLEH6wF5ezAdsGsPpddC799fcaXF8+dHXGWRncDP/QO3+EAGqYClumiDSID0ri8ZH6BpD4MDlO1hZIC+PQwLmGIPYwJm2cOAE5mE/cXNtdKJTGjvyw/bFZB6GvYvruRpD8jbqzU0BljY+0DLm1jIfnXYl6vLuMpSPQE7ex+oC7BmDxUBBu2h/VMoMNceSgM2t3+6PfROYDqlAZubnXpXaNI7gekNFQGpV/zchroJGGyofglZa2j8QpPSXeZ1JkldCwXszKH9UyjfoFbSHgAW5tAVAKmGTsoPO+bn9d0tb+hU/XldaA4ljAmAWQ3DAmBKw8gA0G8YHADKDeMDQLNBJABoOGWI9kgFBJYZQsgGKFB6Ji7503wKRRMwaw/7AZbtYSfAuD0kA1C3bw/bAS7UAxsBjuxhHeDLHv4EuLOHGIC6R3s4BjhVP3I4/AJOwc2Q7k4s+AAAAABJRU5ErkJggg=="
+resetButton.texture = " iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAADqSURBVHgB7ZZRDkQRDEVrMguwBEuw/x9LsARL6ajExHho62P8uIlIqN6Tx6MGABAO6gWHdQEeAM45CCGUnhMilsbJWltyeu/HedqWA5GUUsIMgf1826pWMdkcY4wljvpBzO8AmZK5BIIDaM0XuZ4LpRArAKH5GEAKMQNQmM8BeojR/s0ANOcImMmSgMzzCeYSfRvF0hqBOZpKcUr3JjwO8O4HZlerMQY0kuY5/gXuX3ABWACumBhJU9SQRO/53x8jyZM6A9AUNbBrvgJQQuyZcwAKiP394wB6CFFRqikmJAAVYlbU3Kv4AnwAjUeU7dSfDjoAAAAASUVORK5CYII="
 resetButton.onActivated = function()
   whiteboardView:resetBoard()
 end
 whiteboardView:addSubview(resetButton)
 
+-- ADDS BRUSH SIZE DOWN BUTTON
+local brushSizeDownButton = ui.Button(ui.Bounds(0.7, -0.5, 0.5,  0.2, 0.2, 0.2):rotate(math.pi/4, 1, 0 ,0) )
+brushSizeDownButton.texture = " iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAGzSURBVHgB7VftkYIwEF2uAkuwBDvQDixBO9AOpBOgAqAChgqgA+gAOsjlMRdcSIQEnMMfvpnMxDUfbz+yu3hEJGhD/NDG+BJwIrDb7ejxeFCWZVRVFQkhutE0TSe73W603+/JFWJuyEOFvEDYIgiCbo/N2bMEpFZCaihcgT33+30dAWlu7WBY4nq9DjQ8HA6dLI5jbT3OWEQAmnNIn4vT6WTlLqzlmLGE+RBu9qIohAxAW592a7GHu2MiJnRhGIYDzV0u5yS4JeA6KwJgyuEQzdqAyzheKDIUwF8KSZIsvlwN/nx939f+1xLR+Xzu5zKqaS2iKOrnx+PRuGbAiAcfnpeSu4IMLkVMjO/z/iZPNuL50/M8o9wGr/ZyOfB5xaiu636+pLCMId3Yz9u2JScC8hn1c5jOZZgIlGU5TyDP835+uVxoLfirStPUuEbLYBw2+Z8m6oJFUptOHu9KxegRyCYVK+abFiMapWRlCZu6AJetLsdqIHePgaZDBucgS4IYGhJT22bK/9YElCU2a8m4hrxHmAMs8bamdEwErRou4FaBzyGDuV1fjFaM/hvfT7PNCfwCLC5MjI43pfEAAAAASUVORK5CYII="
+brushSizeDownButton.onActivated = function()
+  whiteboardView:setBrushSize(whiteboardView.brushSize - 1)
+end
+whiteboardView:addSubview(brushSizeDownButton)
+
+-- ADDS BRUSH SIZE UP BUTTON
+local brushSizeUpButton = ui.Button(ui.Bounds(0.9, -0.5, 0.5,  0.2, 0.2, 0.2):rotate(math.pi/4, 1, 0 ,0) )
+brushSizeUpButton.texture = " iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAG6SURBVHgB7VfbsYIwEF1uBZZgCXagHViCdqAdaCdABUAFDBVAB9ABdJCbw1xwycMEcS5+eGYysy55nH1kswZEJGhF/NDK+BKYRWCz2dDtdqM8z6muaxJC9KNt2153uVxou93SXAjXkJsKeYDwRRiG/RqfvZ0EpFVCWijmAmuu1+syAtLd2sbwxPl8nli42+16XZIk2nzs8RIBWM4hYy4Oh4NXuDCXw+EJ8ybc7WVZCpmAvjHt52IND8eTnNCVURRNLDcdrsJEgnsCofMiAKYcNuYuAhgIGYfFi1MF4jUgTVOrm30IYPDre7/fte9aIToej6Mss5qWIo7jUd7v98Y5E0Y8+XC9yGKxC2QIKXJCPS/4Ex5sxONnEARGvQ9sa7ke+LzHqGmaUX7lYVEhwzjKXdfRLALyGo0yXMeHCtt3TqCqKjeBoihG+XQ60VLwW5VlmXGOVsE4bPXfpw54FrXnxeNdpRg9AvmUYvqEx4iUkjx4wqfLQcgWP8fDQO1WgaZDJuekSoIYGhJT22aq/94EBk+s1pJxC3mP4AI88bamVCWCVg0HcK8g5tDB3XOSFUN7jP4b379mqxP4BQb3iETeAvICAAAAAElFTkSuQmCC"
+brushSizeUpButton.onActivated = function()
+  whiteboardView:setBrushSize(whiteboardView.brushSize + 1)
+end
+whiteboardView:addSubview(brushSizeUpButton)
 
 app.mainView = whiteboardView
 
--- STARTS A LOOP CHECKING FOR CHANGES
-app:scheduleAction(0.1, true, function() 
+-- Runs sendIfDirty() 10 times per second
+app:scheduleAction(0.05, true, function() 
   whiteboardView:sendIfDirty()
 end)
 
