@@ -11,9 +11,7 @@ local client = Client(
     "allo-whiteboard"
 )
 local app = App(client)
-local isReadyForDrawing = false
 local BOARD_RESOLUTION = 128
-local isDirty = false;
 
 print("+==================+")
 print("+ WHITEBOARD ADDED +")
@@ -28,6 +26,9 @@ function Whiteboard:_init(bounds)
   print("+ width: " .. bounds.size.width .. "         +")
   print("+ height: " .. bounds.size.height .. "        +")
   print("+ ---------------- +")
+
+  self.isReadyForDrawing = false
+  self.isDirty = false;
 
   self.sr = cairo.image_surface(cairo.cairo_format("rgb24"), bounds.size.width * BOARD_RESOLUTION, bounds.size.height * BOARD_RESOLUTION)  
   self.cr = self.sr:context()
@@ -106,7 +107,7 @@ function Whiteboard:onInteraction(inter, body, sender)
         -- print(localPointTopLeftOrigo)
         -- print(normalizedLocalPointTopLeftOrigo)
 
-        if isReadyForDrawing then
+        if self.isReadyForDrawing then
           --print("Drawing on the whiteboard...");
           self:drawPixel(normalizedLocalPointTopLeftOrigo.x * self.bounds.size.width * BOARD_RESOLUTION, normalizedLocalPointTopLeftOrigo.y * self.bounds.size.height *  BOARD_RESOLUTION)
         end
@@ -116,7 +117,7 @@ function Whiteboard:onInteraction(inter, body, sender)
 
     elseif body[1] == "poke" then
         -- set whiteboard to be "ready to recieve point events" when picking up "point" interactions
-        isReadyForDrawing = body[2]
+        self.isReadyForDrawing = body[2]
     end
 end
 
@@ -127,7 +128,7 @@ function Whiteboard:drawPixel(x, y)
   self.cr:circle(x, y, 5)
   self.cr:fill()
   
-  isDirty = true
+  self.isDirty = true
   --self:broadcastTextureChanged()
 
 end
@@ -137,7 +138,12 @@ function Whiteboard:broadcastTextureChanged()
   self:updateComponents({geometry = geom})
 end
 
-
+function Whiteboard:sendIfDirty()
+  if self.isDirty then
+    self:broadcastTextureChanged()
+    self.isDirty = false
+  end
+end
 
 local whiteboardView = Whiteboard(ui.Bounds(1.5, 1, 0, 2, 1, 0.1))
 
@@ -148,11 +154,8 @@ whiteboardView:addSubview(grabHandle)
 
 app.mainView = whiteboardView
 
-app:scheduleAction(0.25, true, function() 
-  if isDirty then
-    whiteboardView:broadcastTextureChanged()
-    isDirty = false
-  end
+app:scheduleAction(0.1, true, function() 
+  whiteboardView:sendIfDirty()
 end)
 
 app:connect()
