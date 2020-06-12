@@ -13,6 +13,7 @@ local client = Client(
 local app = App(client)
 local isReadyForDrawing = false
 local BOARD_RESOLUTION = 128
+local isDirty = false;
 
 print("+==================+")
 print("+ WHITEBOARD ADDED +")
@@ -126,7 +127,8 @@ function Whiteboard:drawPixel(x, y)
   self.cr:circle(x, y, 5)
   self.cr:fill()
   
-  self:broadcastTextureChanged()
+  isDirty = true
+  --self:broadcastTextureChanged()
 
 end
 
@@ -140,5 +142,13 @@ local whiteboardView = Whiteboard(ui.Bounds(1.5, 1, 0, 2, 1, 0.1))
 
 
 app.mainView = whiteboardView
+
+app:scheduleAction(0.25, true, function() 
+  if isDirty then
+    whiteboardView:broadcastTextureChanged()
+    isDirty = false
+  end
+end)
+
 app:connect()
 app:run()
