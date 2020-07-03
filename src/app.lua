@@ -28,6 +28,7 @@ function Whiteboard:_init(bounds)
   print("+ ---------------- +")
 
   self.isReadyForDrawing = false
+  self.drawingUser = nil
   self.isDirty = false;
   self.brushSize = 3;
 
@@ -72,7 +73,7 @@ end
 
 function Whiteboard:onInteraction(inter, body, sender)
     if body[1] == "point" then
-        --print("pointing at the whiteboard");
+        --print("pointing at the whiteboard with sender: ", sender);
         local worldPoint = vec3(body[3][1], body[3][2], body[3][3])
         local inverted = mat4.invert({}, self.bounds.pose.transform)
         local localPoint = vec3(mat4.mul_vec4({}, inverted, {worldPoint.x, worldPoint.y, worldPoint.z, 1}))
@@ -86,10 +87,10 @@ function Whiteboard:onInteraction(inter, body, sender)
         -- print(localPointTopLeftOrigo)
         -- print(normalizedLocalPointTopLeftOrigo)
 
-        if self.isReadyForDrawing then
+        if (self.isReadyForDrawing and (sender == self.drawingUser)) then
           --print("Drawing on the whiteboard...");
           self:drawPixel( normalizedLocalPointTopLeftOrigo.x * self.bounds.size.width * BOARD_RESOLUTION, 
-                          normalizedLocalPointTopLeftOrigo.y * self.bounds.size.height *  BOARD_RESOLUTION)
+                          normalizedLocalPointTopLeftOrigo.y * self.bounds.size.height * BOARD_RESOLUTION)
         end
 
     elseif body[1] == "point-exit" then
@@ -98,6 +99,7 @@ function Whiteboard:onInteraction(inter, body, sender)
     elseif body[1] == "poke" then
         -- set whiteboard to be "ready to recieve point events" when picking up "point" interactions
         self.isReadyForDrawing = body[2]
+        self.drawingUser = sender
     end
 end
 
@@ -165,7 +167,7 @@ function Whiteboard:resetBoard()
   self:broadcastTextureChanged()
 end
 
-local whiteboardView = Whiteboard(ui.Bounds(1.5, 1, 0,   2, 1, 0.1):rotate(math.pi/2,1,1,0))
+local whiteboardView = Whiteboard(ui.Bounds(1.5, 1, 0,   2, 1, 0.1))
 
 -- ADDS THE GRAB HANDLE
 local grabHandle = ui.GrabHandle(ui.Bounds(-0.9, -0.5, 0.5,   0.2, 0.2, 0.2))
