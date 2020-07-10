@@ -42,6 +42,15 @@ brushSizeUpButton.onActivated = function()
 end
 whiteboardView:addSubview(brushSizeUpButton)
 
+
+-- ADDS RESIZE BUTTON
+local resizeButton = ui.Button(ui.Bounds(-0.4, -0.4, 0.5,  0.2, 0.2, 0.2):rotate(math.pi/4, math.pi/4, 0 ,0) )
+resizeButton.texture = " iVBORw0KGgoAAAANSUhEUgAAACAAAAAgBAMAAACBVGfHAAAAGFBMVEUAAAD////f398gICAQEBDPz8+/v78wMDD1AYgaAAAAYUlEQVR4AWOgDhAUFIQzcAgIGUAEWAKhAorKEAFXIaiAkZABRIEyVIBZMQBEswkZCELtMS0AkezBDEMPuIGdzpwMCzGWQFTPCbpCvM+sCPN+IDSAjISQghCiRJC4UKccAAAhVAp3/yDRIwAAAABJRU5ErkJggg=="
+resizeButton.onActivated = function()
+  whiteboardView:resize(ui.Bounds(1.5, 1, 0,   3, 2, 0.1))
+end
+whiteboardView:addSubview(resizeButton)
+
 app.mainView = whiteboardView
 
 -- Checks whiteboard refresh 10 times per second

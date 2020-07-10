@@ -129,6 +129,46 @@ function Whiteboard:setBrushSize(newbrushSize)
   self.brushSize = newbrushSize
 end
 
+function Whiteboard:resize(bounds)
+  
+  -- TODO:
+  -- Add a maxiumum size restriction
+  -- Update (recreate) the cairo surface to the new size of the whiteboard
+  -- Decide how resizing will be done by the user (dragging interaction?)
+
+  print("+ resizing...    +")
+  print("+ ---------------- +")
+  print("+ width: " .. bounds.size.width .. "         +")
+  print("+ height: " .. bounds.size.height .. "        +")
+  print("+ ---------------- +")
+
+  
+ 
+
+
+  local pattern = self.cr:source()
+
+  local newsr = cairo.image_surface(cairo.cairo_format("rgb24"), bounds.size.width * BOARD_RESOLUTION, bounds.size.height * BOARD_RESOLUTION)  
+  local newcr = newsr:context()
+
+  -- newcr:rgb(255, 0, 255)
+  -- newcr:paint()
+
+  newcr:source(self.sr) --TODO: set x & y of the new pattern according to cr:source(patt | sr, [x, y])
+
+  self.sr = newsr
+  self.cr = newcr
+
+  self.cr:paint()
+
+  -- self.isDirty = true
+  self.bounds = bounds
+  self:updateComponents(
+    self:specification()
+  )
+
+end
+
 
 function Whiteboard:resetBoard()
   
@@ -137,29 +177,29 @@ function Whiteboard:resetBoard()
   self.cr:paint()
 
   -- DRAWS ORIENTATION MARKERS
-  self.cr:rgb(255, 0, 0)    -- RED, TOP LEFT
-  self.cr:circle(0, 0, 16)
-  self.cr:fill()
+  -- self.cr:rgb(255, 0, 0)    -- RED, TOP LEFT
+  -- self.cr:circle(0, 0, 16)
+  -- self.cr:fill()
 
-  self.cr:rgb(0, 255, 0)    -- GREEN, TOP RIGHT
-  self.cr:circle(self.bounds.size.width*BOARD_RESOLUTION, 0, 16)
-  self.cr:fill()
+  -- self.cr:rgb(0, 255, 0)    -- GREEN, TOP RIGHT
+  -- self.cr:circle(self.bounds.size.width*BOARD_RESOLUTION, 0, 16)
+  -- self.cr:fill()
 
-  self.cr:rgb(255, 255, 0)  -- YELLOW, BOTTOM LEFT
-  self.cr:circle(0, self.bounds.size.height*BOARD_RESOLUTION, 16)
-  self.cr:fill()
+  -- self.cr:rgb(255, 255, 0)  -- YELLOW, BOTTOM LEFT
+  -- self.cr:circle(0, self.bounds.size.height*BOARD_RESOLUTION, 16)
+  -- self.cr:fill()
 
-  self.cr:rgb(255, 0, 255)  -- MAGENTA, BOTTOM RIGHT
-  self.cr:circle(self.bounds.size.width*BOARD_RESOLUTION, self.bounds.size.height*BOARD_RESOLUTION, 16)
-  self.cr:fill()
+  -- self.cr:rgb(255, 0, 255)  -- MAGENTA, BOTTOM RIGHT
+  -- self.cr:circle(self.bounds.size.width*BOARD_RESOLUTION, self.bounds.size.height*BOARD_RESOLUTION, 16)
+  -- self.cr:fill()
 
-  -- DRAWS A BORDER ALONG THE EDGES OF THE WHITEBOARD
-  self.cr:rgb(255, 255, 255)  -- WHITE
-  self.cr:rectangle(0, 0, 5, self.bounds.size.height*BOARD_RESOLUTION)
-  self.cr:rectangle(self.bounds.size.width*BOARD_RESOLUTION-5, 0, 5, self.bounds.size.height*BOARD_RESOLUTION)
-  self.cr:rectangle(0, 0, self.bounds.size.width*BOARD_RESOLUTION, 5)
-  self.cr:rectangle(0, self.bounds.size.height*BOARD_RESOLUTION-5, self.bounds.size.width*BOARD_RESOLUTION, 5)
-  self.cr:fill()
+  -- -- DRAWS A BORDER ALONG THE EDGES OF THE WHITEBOARD
+  -- self.cr:rgb(255, 255, 255)  -- WHITE
+  -- self.cr:rectangle(0, 0, 5, self.bounds.size.height*BOARD_RESOLUTION)
+  -- self.cr:rectangle(self.bounds.size.width*BOARD_RESOLUTION-5, 0, 5, self.bounds.size.height*BOARD_RESOLUTION)
+  -- self.cr:rectangle(0, 0, self.bounds.size.width*BOARD_RESOLUTION, 5)
+  -- self.cr:rectangle(0, self.bounds.size.height*BOARD_RESOLUTION-5, self.bounds.size.width*BOARD_RESOLUTION, 5)
+  -- self.cr:fill()
 
   self:broadcastTextureChanged()
 end
