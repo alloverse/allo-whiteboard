@@ -10,7 +10,7 @@ class.Whiteboard(ui.View)
 
 function Whiteboard:_init(bounds)
   self:super(bounds)
-  print("+ initiating...    +")
+  print("+ initializing...  +")
   print("+ ---------------- +")
   print("+ width: " .. bounds.size.width .. "         +")
   print("+ height: " .. bounds.size.height .. "        +")
@@ -26,7 +26,7 @@ function Whiteboard:_init(bounds)
   self.sr = cairo.image_surface(cairo.cairo_format("rgb24"), bounds.size.width * BOARD_RESOLUTION, bounds.size.height * BOARD_RESOLUTION)  
   self.cr = self.sr:context()
 
-  self:resetBoard()
+  self:clearBoard()
 
 end
 
@@ -170,7 +170,7 @@ function Whiteboard:resize(bounds)
 end
 
 
-function Whiteboard:resetBoard()
+function Whiteboard:clearBoard()
   
   -- DRAWS THE WHOLE BOARD BLACK
   self.cr:rgb(0, 0, 0)
