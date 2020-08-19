@@ -15,8 +15,15 @@ print("+==================+")
 local whiteboardView = Whiteboard(ui.Bounds(1.5, 1, 0,   2, 1, 0.1))
 
 -- ADDS THE GRAB HANDLE
-local grabHandle = ui.GrabHandle(ui.Bounds(-0.9, -0.5, 0.5,   0.2, 0.2, 0.2))
+local grabHandle = ui.GrabHandle(ui.Bounds(-0.9, -0.63, 0.0,   0.2, 0.2, 0.2))
 whiteboardView:addSubview(grabHandle)
+
+-- ADDS THE RIGHTMOST HORIZONTAL RESIZE HANDLE
+local horizontalResizeHandle = ui.ResizeHandle(ui.Bounds(1.13, 0, 0,   0.2, 0.2, 0.2), {"x"})
+horizontalResizeHandle.onActivated = function ()
+  whiteboardView.onHorizontalResizeActive()
+end
+whiteboardView:addSubview(horizontalResizeHandle)
 
 -- ADDS THE CLEAR BUTTON
 -- TODO: Make the textures into constants to get these silly strings out of the code

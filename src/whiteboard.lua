@@ -169,6 +169,10 @@ function Whiteboard:resize(bounds)
 
 end
 
+function Whiteboard:onHorizontalResizeActive()
+  print("horizontal resizing active!")
+end
+
 
 function Whiteboard:clearBoard()
   
