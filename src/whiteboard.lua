@@ -63,6 +63,7 @@ end
 
 
 function Whiteboard:onInteraction(inter, body, sender)
+
     if body[1] == "point" then
         self:_attemptToDraw(sender, body[3][1], body[3][2], body[3][3]);
 
@@ -85,7 +86,7 @@ end
 function Whiteboard:_attemptToDraw(sender, worldX, worldY, worldZ)
   -- Checks if the user is allowed to draw
   if (self.drawingUserControlTable[sender] ~= true ) then return end
-
+  
   local worldPoint = vec3(worldX, worldY, worldZ)
   local inverted = mat4.invert({}, self.bounds.pose.transform)
   local localPoint = vec3(mat4.mul_vec4({}, inverted, {worldPoint.x, worldPoint.y, worldPoint.z, 1}))
@@ -100,7 +101,7 @@ function Whiteboard:_attemptToDraw(sender, worldX, worldY, worldZ)
   -- print(normalizedLocalPointTopLeftOrigo)
 
     self:_drawAt( normalizedLocalPointTopLeftOrigo.x * self.bounds.size.width * BOARD_RESOLUTION, 
-                    normalizedLocalPointTopLeftOrigo.y * self.bounds.size.height * BOARD_RESOLUTION)
+                  normalizedLocalPointTopLeftOrigo.y * self.bounds.size.height * BOARD_RESOLUTION)
 end
 
 function Whiteboard:_drawAt(x, y)
@@ -129,57 +130,35 @@ function Whiteboard:setBrushSize(newbrushSize)
   self.brushSize = newbrushSize
 end
 
-function Whiteboard:resize(bounds)
-  
-  -- TODO:
-  -- Add a maxiumum size restriction
-  -- Update (recreate) the cairo surface to the new size of the whiteboard
-  -- Decide how resizing will be done by the user (dragging interaction?)
+function Whiteboard:resize(newWidth, newHeight)
+  local oldWidth = self.bounds.size.width
+  local oldHeight = self.bounds.size.height
+  if (oldWidth == newWidth and oldHeight == newHeight) then return end
 
-  print("+ resizing...    +")
-  print("+ ---------------- +")
-  print("+ width: " .. bounds.size.width .. "         +")
-  print("+ height: " .. bounds.size.height .. "        +")
-  print("+ ---------------- +")
+  local m = mat4.new(self.entity.components.transform.matrix)
+  currentWhiteboardPosition = m * vec3(0,0,0)
 
-  
- 
-
-
+  self.bounds.size.width = newWidth
+  self.bounds.size.height = newHeight
   local pattern = self.cr:source()
 
-  local newsr = cairo.image_surface(cairo.cairo_format("rgb24"), bounds.size.width * BOARD_RESOLUTION, bounds.size.height * BOARD_RESOLUTION)  
+  local newsr = cairo.image_surface(cairo.cairo_format("rgb24"), newWidth * BOARD_RESOLUTION, newHeight * BOARD_RESOLUTION)  
   local newcr = newsr:context()
 
-  -- newcr:rgb(255, 0, 255)
-  -- newcr:paint()
-
-  newcr:source(self.sr) --TODO: set x & y of the new pattern according to cr:source(patt | sr, [x, y])
+  newcr:source(self.sr, (newWidth * BOARD_RESOLUTION - oldWidth * BOARD_RESOLUTION)/2, (newHeight * BOARD_RESOLUTION - oldHeight * BOARD_RESOLUTION)/2)
 
   self.sr = newsr
   self.cr = newcr
-
   self.cr:paint()
 
-  -- self.isDirty = true
-  self.bounds = bounds
+  --self:drawDecorations()
+
   self:updateComponents(
     self:specification()
   )
-
 end
 
-function Whiteboard:onHorizontalResizeActive()
-  print("horizontal resizing active!")
-end
-
-
-function Whiteboard:clearBoard()
-  
-  -- DRAWS THE WHOLE BOARD BLACK
-  self.cr:rgb(0, 0, 0)
-  self.cr:paint()
-
+function Whiteboard:drawDecorations()
   -- DRAWS ORIENTATION MARKERS
   -- self.cr:rgb(255, 0, 0)    -- RED, TOP LEFT
   -- self.cr:circle(0, 0, 16)
@@ -198,12 +177,20 @@ function Whiteboard:clearBoard()
   -- self.cr:fill()
 
   -- -- DRAWS A BORDER ALONG THE EDGES OF THE WHITEBOARD
-  -- self.cr:rgb(255, 255, 255)  -- WHITE
-  -- self.cr:rectangle(0, 0, 5, self.bounds.size.height*BOARD_RESOLUTION)
-  -- self.cr:rectangle(self.bounds.size.width*BOARD_RESOLUTION-5, 0, 5, self.bounds.size.height*BOARD_RESOLUTION)
-  -- self.cr:rectangle(0, 0, self.bounds.size.width*BOARD_RESOLUTION, 5)
-  -- self.cr:rectangle(0, self.bounds.size.height*BOARD_RESOLUTION-5, self.bounds.size.width*BOARD_RESOLUTION, 5)
-  -- self.cr:fill()
+  self.cr:rgb(255, 255, 255)  -- WHITE
+  self.cr:rectangle(0, 0, 3, self.bounds.size.height*BOARD_RESOLUTION)
+  self.cr:rectangle(self.bounds.size.width*BOARD_RESOLUTION-3, 0, 3, self.bounds.size.height*BOARD_RESOLUTION)
+  self.cr:rectangle(0, 0, self.bounds.size.width*BOARD_RESOLUTION, 3)
+  self.cr:rectangle(0, self.bounds.size.height*BOARD_RESOLUTION-3, self.bounds.size.width*BOARD_RESOLUTION, 3)
+  self.cr:fill()
+end
+
+function Whiteboard:clearBoard()
+  -- DRAWS THE WHOLE BOARD BLACK
+  self.cr:rgb(0, 0, 0)
+  self.cr:paint()
+
+  --self:drawDecorations()
 
   self:broadcastTextureChanged()
 end
