@@ -6,7 +6,6 @@ local DrawableSurface = require("DrawableSurface")
 class.Whiteboard(ui.View)
 
 function Whiteboard:_init(bounds)
-  print("in Whiteboard:init!")
   self:super(bounds)
 
   self.drawableSurface = DrawableSurface(ui.Bounds{size=bounds.size})
@@ -61,7 +60,6 @@ function Whiteboard:_init(bounds)
 end
 
 function Whiteboard:specification()
-  print("In Whiteboard:specification")
   return ui.View.specification(self)
 end
 

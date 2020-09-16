@@ -3,13 +3,13 @@ local class = require('pl.class')
 local tablex = require('pl.tablex')
 local vec3 = require("modules.vec3")
 local mat4 = require("modules.mat4")
+local pretty = require('pl.pretty')
 
 local BOARD_RESOLUTION = 128
 
 class.DrawableSurface(ui.View)
 
 function DrawableSurface:_init(bounds)
-  print("in DrawableSurface:init")
   self:super(bounds)
 
   self.isDirty = false;
@@ -26,8 +26,6 @@ function DrawableSurface:_init(bounds)
 end
 
 function DrawableSurface:specification()
-  --print("in DrawableSurface:specification")
-
   self.sr:save_png("whiteboard.png")
 
   local fh = io.open("whiteboard.png", "rb")
@@ -81,25 +79,23 @@ function DrawableSurface:_attemptToDraw(sender, worldX, worldY, worldZ)
   if (self.drawingUserControlTable[sender] ~= true ) then return end
   
   local worldPoint = vec3(worldX, worldY, worldZ)
-  local inverted = mat4.invert({}, self.bounds.pose.transform)
+  local inverted = mat4.invert({}, self:transformFromWorld())
   local localPoint = vec3(mat4.mul_vec4({}, inverted, {worldPoint.x, worldPoint.y, worldPoint.z, 1}))
   
   local localPointTopLeftOrigo = vec3(self.bounds.size.width/2 + localPoint.x, self.bounds.size.height/2 + localPoint.y, self.bounds.size.depth/2 + localPoint.z)
   local normalizedLocalPointTopLeftOrigo = vec3(localPointTopLeftOrigo.x / self.bounds.size.width, localPointTopLeftOrigo.y / self.bounds.size.height, localPointTopLeftOrigo.z / self.bounds.size.depth)
 
-  print("----------------------")
-  print(worldPoint)
-  print(localPoint)
-  print(localPointTopLeftOrigo)
-  print(normalizedLocalPointTopLeftOrigo)
+  -- print("----------------------")
+  -- print(worldPoint)
+  -- print(localPoint)
+  -- print(localPointTopLeftOrigo)
+  -- print(normalizedLocalPointTopLeftOrigo)
 
   self:_drawAt( normalizedLocalPointTopLeftOrigo.x * self.bounds.size.width * BOARD_RESOLUTION, 
                 normalizedLocalPointTopLeftOrigo.y * self.bounds.size.height * BOARD_RESOLUTION)
 end
 
 function DrawableSurface:_drawAt(x, y)
-  print("DrawableSurface:_drawAt: ", x, y)
-
   self.cr:rgb(255, 255, 255)
   self.cr:circle(x, y, self.brushSize)
   self.cr:fill()
