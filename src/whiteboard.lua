@@ -19,11 +19,11 @@ function Whiteboard:_init(bounds)
   self.SPACING = 0.13;
   
   -- GRAB HANDLE
-  self.grabHandle = ui.GrabHandle(ui.Bounds(-0.9, -0.63, 0.0,   0.2, 0.2, 0.2))
+  self.grabHandle = ui.GrabHandle(ui.Bounds(-self.half_width-self.SPACING, -self.half_height-self.SPACING, 0.0, self.BUTTON_SIZE, self.BUTTON_SIZE, self.BUTTON_SIZE))
   self:addSubview(self.grabHandle)
   
   -- RESIZE HANDLE
-  self.resizeHandle = ui.ResizeHandle(ui.Bounds(1+self.SPACING, 0, 0,   0.2, 0.2, 0.2), {1, 1, 0}, {0, 0, 0})
+  self.resizeHandle = ui.ResizeHandle(ui.Bounds(self.half_width+self.SPACING, self.half_height+self.SPACING, 0, self.BUTTON_SIZE, self.BUTTON_SIZE, self.BUTTON_SIZE), {1, 1, 0}, {0, 0, 0})
   self:addSubview(self.resizeHandle)
   
   -- CLEAR BUTTON
@@ -71,8 +71,8 @@ function Whiteboard:update()
     local m = mat4.new(self.resizeHandle.entity.components.transform.matrix) -- looks at the resizeHandle's position
     local resizeHandlePosition = m * vec3(0,0,0)
 
-    local newWidth = resizeHandlePosition.x*2 - 0.26
-    local newHeight = resizeHandlePosition.y*2 + 1
+    local newWidth = resizeHandlePosition.x*2 - self.SPACING*2
+    local newHeight = resizeHandlePosition.y*2 - self.SPACING*2
 
     if newWidth <= 1.13 then newWidth = 1.13 end
     if newHeight <= 0.5 then newHeight = 0.5 end
@@ -100,7 +100,9 @@ function Whiteboard:layout()
   -- print("self.half_height", self.half_height)
   -- print("self.SPACING", self.SPACING)
 
-  self.clearButton:setBounds(ui.Bounds{pose=ui.Pose(0, -self.half_height-self.SPACING, 0), size=self.clearButton.bounds.size})
+  self.grabHandle:setBounds(ui.Bounds{pose=ui.Pose(-self.half_width-self.SPACING, -self.half_height-self.SPACING, 0.0), size=self.grabHandle.bounds.size})
+
+  self.clearButton:setBounds(ui.Bounds{pose=ui.Pose(self.half_width-self.BUTTON_SIZE*2-self.SPACING*2, -self.half_height-self.SPACING, 0), size=self.clearButton.bounds.size})
   self.brushSizeDownButton:setBounds(ui.Bounds{pose=ui.Pose(self.half_width-self.BUTTON_SIZE-self.SPACING, -self.half_height-self.SPACING, 0.0), size=self.brushSizeDownButton.bounds.size})
   self.brushSizeUpButton:setBounds(ui.Bounds{pose=ui.Pose(self.half_width-self.BUTTON_SIZE/2, -self.half_height-self.SPACING, 0.0), size=self.brushSizeUpButton.bounds.size})
 end
