@@ -130,9 +130,19 @@ function DrawableSurface:setBrushSize(newbrushSize)
   self.brushSize = newbrushSize
 end
 
-function DrawableSurface:resize(newWidth, newHeight)
-  print("in DrawableSurface:resize")
 
+
+function DrawableSurface:drawDecorations()
+  -- DRAWS A BORDER ALONG THE EDGES OF THE WHITEBOARD
+  self.cr:rgb(255, 255, 255)
+  self.cr:rectangle(0, 0, 3, self.bounds.size.height*BOARD_RESOLUTION)
+  self.cr:rectangle(self.bounds.size.width*BOARD_RESOLUTION-3, 0, 3, self.bounds.size.height*BOARD_RESOLUTION)
+  self.cr:rectangle(0, 0, self.bounds.size.width*BOARD_RESOLUTION, 3)
+  self.cr:rectangle(0, self.bounds.size.height*BOARD_RESOLUTION-3, self.bounds.size.width*BOARD_RESOLUTION, 3)
+  self.cr:fill()
+end
+
+function DrawableSurface:resize(newWidth, newHeight)
   local oldWidth = self.bounds.size.width
   local oldHeight = self.bounds.size.height
   if (oldWidth == newWidth and oldHeight == newHeight) then return end
