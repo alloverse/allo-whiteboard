@@ -44,11 +44,15 @@ function DrawableSurface:specification()
           vertices=   {{-w2, h2, 0.0},    {w2, h2, 0.0},    {-w2, -h2, 0.0},   {w2, -h2, 0.0}},
           uvs=        {{0.0, 0.0},        {1.0, 0.0},       {0.0, 1.0},        {1.0, 1.0}},
           triangles=  {{0, 1, 3},         {3, 2, 0},        {0, 2, 3},         {3, 1, 0}},
-          texture= encoded_image
+          texture= encoded_image  
       },
       collider= {
           type= "box",
           width= s.width, height= s.height, depth= s.depth
+      },
+      cursor= {
+        name= "brushCursor",
+        size= self.brushSize
       }
   })
   return mySpec
@@ -128,6 +132,9 @@ end
 
 function DrawableSurface:setBrushSize(newbrushSize)
   self.brushSize = newbrushSize
+ 
+  local c = self:specification().cursor
+  self:updateComponents({cursor = c})
 end
 
 
