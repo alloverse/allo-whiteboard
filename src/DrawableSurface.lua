@@ -60,19 +60,13 @@ end
 
 function DrawableSurface:onInteraction(inter, body, sender)
   if body[1] == "point" then
-      self:_attemptToDraw(sender, body[3][1], body[3][2], body[3][3]);
-
+    -- Pointing at the board
+    self:_attemptToDraw(sender, body[3][1], body[3][2], body[3][3]);
   elseif body[1] == "point-exit" then
-      -- print("No longer pointing at the whiteboard");
-
+    -- No longer pointing at the board
   elseif body[1] == "poke" then
-      -- set whiteboard ability to pick up "point" interactions depending on poke is true or false.
-      self.drawingUserControlTable[sender] = body[2];
-
-      -- print("= USER CONTROL TABLE =")
-      -- for key,value in pairs(self.drawingUserControlTable) do 
-      --   print(key, value)
-      -- end
+    -- set whiteboard ability to pick up "point" interactions depending on poke is true or false.
+    self.drawingUserControlTable[sender] = body[2];
   end
 end
 
@@ -84,19 +78,19 @@ function DrawableSurface:_attemptToDraw(sender, worldX, worldY, worldZ)
   
   local worldPoint = vec3(worldX, worldY, worldZ)
   local inverted = mat4.invert({}, self:transformFromWorld())
-  local localPoint = vec3(mat4.mul_vec4({}, inverted, {worldPoint.x, worldPoint.y, worldPoint.z, 1}))
+
+  -- print("self:transformFromWorld()", self:transformFromWorld())
   
-  local localPointTopLeftOrigo = vec3(self.bounds.size.width/2 + localPoint.x, self.bounds.size.height/2 + localPoint.y, self.bounds.size.depth/2 + localPoint.z)
-  local normalizedLocalPointTopLeftOrigo = vec3(localPointTopLeftOrigo.x / self.bounds.size.width, localPointTopLeftOrigo.y / self.bounds.size.height, localPointTopLeftOrigo.z / self.bounds.size.depth)
-
+  local localPoint = vec3(mat4.mul_vec4({}, inverted, {worldPoint.x, worldPoint.y, worldPoint.z, 1}))
+  local localPointBottomLeftOrigo = vec3(self.bounds.size.width/2 + localPoint.x, self.bounds.size.height/2 + localPoint.y, self.bounds.size.depth/2 + localPoint.z)
+  
   -- print("----------------------")
-  -- print(worldPoint)
-  -- print(localPoint)
-  -- print(localPointTopLeftOrigo)
-  -- print(normalizedLocalPointTopLeftOrigo)
+  -- print("worldPoint..........................", worldPoint)
+  -- print("localPoint (center origo)...........", localPoint)
+  -- print("localPointBottomLeftOrigo...........", localPointBottomLeftOrigo)
 
-  self:_drawAt( normalizedLocalPointTopLeftOrigo.x * self.bounds.size.width * BOARD_RESOLUTION, 
-                normalizedLocalPointTopLeftOrigo.y * self.bounds.size.height * BOARD_RESOLUTION)
+  self:_drawAt( localPointBottomLeftOrigo.x * BOARD_RESOLUTION, 
+                localPointBottomLeftOrigo.y * BOARD_RESOLUTION)
 end
 
 function DrawableSurface:_drawAt(x, y)
@@ -124,9 +118,7 @@ end
 function DrawableSurface:clearBoard()
   self.cr:rgb(0, 0, 0)
   self.cr:paint()
-
-  --self:drawDecorations()
-
+ 
   self:broadcastTextureChanged()
 end
 
@@ -137,38 +129,32 @@ function DrawableSurface:setBrushSize(newbrushSize)
   self:updateComponents({cursor = c})
 end
 
-
-
-function DrawableSurface:drawDecorations()
-  -- DRAWS A BORDER ALONG THE EDGES OF THE WHITEBOARD
-  self.cr:rgb(255, 255, 255)
-  self.cr:rectangle(0, 0, 3, self.bounds.size.height*BOARD_RESOLUTION)
-  self.cr:rectangle(self.bounds.size.width*BOARD_RESOLUTION-3, 0, 3, self.bounds.size.height*BOARD_RESOLUTION)
-  self.cr:rectangle(0, 0, self.bounds.size.width*BOARD_RESOLUTION, 3)
-  self.cr:rectangle(0, self.bounds.size.height*BOARD_RESOLUTION-3, self.bounds.size.width*BOARD_RESOLUTION, 3)
-  self.cr:fill()
-end
-
 function DrawableSurface:resize(newWidth, newHeight)
+
   local oldWidth = self.bounds.size.width
   local oldHeight = self.bounds.size.height
+
   if (oldWidth == newWidth and oldHeight == newHeight) then return end
 
-  local m = mat4.new(self.entity.components.transform.matrix)
-  currentWhiteboardPosition = m * vec3(0,0,0)
+  local newCalculatedWidth = newWidth * BOARD_RESOLUTION
+  local newCalculatedHeight = newHeight * BOARD_RESOLUTION
+  local oldCalculatedWidth = oldWidth * BOARD_RESOLUTION
+  local oldCalculatedHeight = oldHeight * BOARD_RESOLUTION
 
-  self.bounds.size.width = newWidth
-  self.bounds.size.height = newHeight
-  local pattern = self.cr:source()
-
-  local newsr = cairo.image_surface(cairo.cairo_format("rgb24"), newWidth * BOARD_RESOLUTION, newHeight * BOARD_RESOLUTION)  
+  local newSourceX = math.floor(((newCalculatedWidth - oldCalculatedWidth)/2)+0.5)
+  local newSourceY = math.floor(((newCalculatedHeight - oldCalculatedHeight)/2)+0.5)
+  
+  local newsr = cairo.image_surface(cairo.cairo_format("rgb24"), newCalculatedWidth, newCalculatedHeight)  
   local newcr = newsr:context()
 
-  newcr:source(self.sr, (newWidth * BOARD_RESOLUTION - oldWidth * BOARD_RESOLUTION)/2, (newHeight * BOARD_RESOLUTION - oldHeight * BOARD_RESOLUTION)/2)
+  newcr:source(self.sr, newSourceX, newSourceY)
 
   self.sr = newsr
   self.cr = newcr
   self.cr:paint()
+
+  self.bounds.size.width = newWidth
+  self.bounds.size.height = newHeight 
 
   self:updateComponents(
     self:specification()

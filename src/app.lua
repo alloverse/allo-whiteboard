@@ -14,8 +14,8 @@ local whiteboard = Whiteboard(ui.Bounds(1.5, 1, 0,   2, 1, 0.1))
 
 app.mainView = whiteboard
 
--- Checks whiteboard refresh 10 times per second
-app:scheduleAction(0.1, true, function()
+-- Checks whiteboard refresh 20 times per second
+app:scheduleAction(0.05, true, function()
   
   whiteboard:update()
 
