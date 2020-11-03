@@ -78,8 +78,6 @@ function DrawableSurface:_attemptToDraw(sender, worldX, worldY, worldZ)
   
   local worldPoint = vec3(worldX, worldY, worldZ)
   local inverted = mat4.invert({}, self:transformFromWorld())
-
-  print("self:transformFromWorld()", self:transformFromWorld())
   
   local localPoint = vec3(mat4.mul_vec4({}, inverted, {worldPoint.x, worldPoint.y, worldPoint.z, 1}))
   local localPointBottomLeftOrigo = vec3(self.bounds.size.width/2 + localPoint.x, self.bounds.size.height/2 + localPoint.y, self.bounds.size.depth/2 + localPoint.z)
