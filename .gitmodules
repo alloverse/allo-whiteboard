@@ -1,9 +1,9 @@
-[submodule "lib/allonet"]
-	path = lib/allonet
-	url = https://github.com/alloverse/allonet.git
-[submodule "lib/alloui-lua"]
-	path = lib/alloui-lua
-	url = https://github.com/alloverse/alloui-lua.git
 [submodule "lib/cairo"]
 	path = lib/cairo
 	url = https://github.com/luapower/cairo.git
+[submodule "allo/deps/alloui"]
+	path = allo/deps/alloui
+	url = https://github.com/alloverse/alloui-lua
+[submodule "allo/deps/luajit-bin"]
+	path = allo/deps/luajit-bin
+	url = https://github.com/luapower/luajit.git

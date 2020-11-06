@@ -1,3 +1,5 @@
-*.so
-*.dylib
-whiteboard.png
+**/*.dll
+**/*.dylib
+**/*.bundle
+**/*.so
+**/whiteboard.png

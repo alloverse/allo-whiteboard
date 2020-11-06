@@ -1,7 +1,14 @@
+package.path = string.format(
+    package.path..";"
+    .."lib/cairo/?.lua"
+)
+
+
+
 local Whiteboard = require("whiteboard")
 
 local client = Client(
-    arg[1], 
+    arg[2], 
     "allo-whiteboard"
 )
 local app = App(client)

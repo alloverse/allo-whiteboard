@@ -1,3 +1,4 @@
+
 # allo-whiteboard
 A basic whiteboard app for use within an Alloverse Place.
 
@@ -5,4 +6,4 @@ A basic whiteboard app for use within an Alloverse Place.
 
 1. `apt install libcairo2 cmake luajit llvm`
 2. `git submodule update --init --recursive`
-3. `env ALLO=alloplace://nevyn.places.alloverse.com make run`
+3. `./allo/assist run alloplace://nevyn.places.alloverse.com`
