@@ -3,3 +3,4 @@
 **/*.bundle
 **/*.so
 **/whiteboard.png
+allo/lib/allonet.cache
