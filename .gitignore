@@ -1,6 +1,7 @@
-**/*.dll
-**/*.dylib
-**/*.bundle
-**/*.so
+allo/**/*.dll
+allo/**/*.dylib
+allo/**/*.bundle
+allo/**/*.so
+allo/**/allonet.cache
+allo/**/builds.json
 **/whiteboard.png
-allo/lib/allonet.cache

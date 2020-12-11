@@ -21,7 +21,7 @@ do_help () {
 do_upgrade () {
     echo "Upgrading allonet..."
     # https://github.com/alloverse/allovisor-unity/blob/master/Assets/Code/Editor/AlloVisorBuild.cs
-    curl -fsSL "https://dev.azure.com/alloverse/allonet/_apis/build/builds?api-version=5.0" > $HERE/builds.json
+    curl -fsSL "https://dev.azure.com/alloverse/allonet/_apis/build/builds?api-version=5.0&branchName=refs/heads/main&statusFilter=completed&resultFilter=succeeded" > $HERE/builds.json
     $LUAJIT $HERE/assist.lua $HERE create-lock
 }
 
