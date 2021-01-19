@@ -44,11 +44,17 @@ function DrawableSurface:specification()
           vertices=   {{-w2, h2, 0.0},    {w2, h2, 0.0},    {-w2, -h2, 0.0},   {w2, -h2, 0.0}},
           uvs=        {{0.0, 0.0},        {1.0, 0.0},       {0.0, 1.0},        {1.0, 1.0}},
           triangles=  {{0, 1, 3},         {3, 2, 0},        {0, 2, 3},         {3, 1, 0}},
-          texture= encoded_image  
       },
       collider= {
           type= "box",
           width= s.width, height= s.height, depth= s.depth
+      },
+      material= {
+        texture= encoded_image
+      },
+      grabbable = {
+        grabbable = true,
+        actuate_on= "$parent"
       },
       cursor= {
         name= "brushCursor",
@@ -102,8 +108,10 @@ end
 function DrawableSurface:broadcastTextureChanged()
   if self.app == nil then return end
 
-  local geom = self:specification().geometry
-  self:updateComponents({geometry = geom})
+  -- local geom = self:specification().geometry
+  -- self:updateComponents({geometry = geom})
+  local mat = self:specification().material
+  self:updateComponents({material = mat})
   self.isDirty = false
 end
 
