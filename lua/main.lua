@@ -17,7 +17,7 @@ print("+===================+")
 print("+ ADDING WHITEBOARD +")
 print("+===================+")
 
-local whiteboard = Whiteboard(ui.Bounds(1.5, 1, 0,   2, 1, 0.1))
+local whiteboard = Whiteboard(ui.Bounds(1.5, 1, 0,   2, 1, 0.01))
 
 app.mainView = whiteboard
 

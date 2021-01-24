@@ -5,7 +5,7 @@ local vec3 = require("modules.vec3")
 local mat4 = require("modules.mat4")
 local pretty = require('pl.pretty')
 
-local BOARD_RESOLUTION = 128
+local BOARD_RESOLUTION = 512
 
 class.DrawableSurface(ui.View)
 
@@ -21,6 +21,8 @@ function DrawableSurface:_init(bounds)
 
   self.sr = cairo.image_surface(cairo.cairo_format("rgb24"), bounds.size.width * BOARD_RESOLUTION, bounds.size.height * BOARD_RESOLUTION)  
   self.cr = self.sr:context()
+
+  self.backgroundColor = {0.051,0.023,0.101}
 
   self:clearBoard()
 end
@@ -99,7 +101,7 @@ end
 
 function DrawableSurface:_drawAt(x, y)
   self.cr:rgb(255, 255, 255)
-  self.cr:circle(x, y, self.brushSize)
+  self.cr:circle(x, y, self.brushSize * 4) -- TODO: Fix this hack of having to quadruple the brush size now that the board resolution is 512 instead of 128
   self.cr:fill()
   
   self.isDirty = true
@@ -122,7 +124,7 @@ function DrawableSurface:sendIfDirty()
 end
 
 function DrawableSurface:clearBoard()
-  self.cr:rgb(0, 0, 0)
+  self.cr:rgb(unpack(self.backgroundColor))
   self.cr:paint()
  
   self:broadcastTextureChanged()
@@ -153,10 +155,14 @@ function DrawableSurface:resize(newWidth, newHeight)
   local newsr = cairo.image_surface(cairo.cairo_format("rgb24"), newCalculatedWidth, newCalculatedHeight)  
   local newcr = newsr:context()
 
+  newcr:rgb(unpack(self.backgroundColor))
+  newcr:paint()
+
   newcr:source(self.sr, newSourceX, newSourceY)
 
   self.sr = newsr
   self.cr = newcr
+  
   self.cr:paint()
 
   self.bounds.size.width = newWidth
