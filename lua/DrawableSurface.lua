@@ -5,7 +5,7 @@ local vec3 = require("modules.vec3")
 local mat4 = require("modules.mat4")
 local pretty = require('pl.pretty')
 
-local BOARD_RESOLUTION = 512
+local BOARD_RESOLUTION = 128
 
 class.DrawableSurface(ui.View)
 
@@ -101,7 +101,7 @@ end
 
 function DrawableSurface:_drawAt(x, y)
   self.cr:rgb(255, 255, 255)
-  self.cr:circle(x, y, self.brushSize * 4) -- TODO: Fix this hack of having to quadruple the brush size now that the board resolution is 512 instead of 128
+  self.cr:circle(x, y, self.brushSize)
   self.cr:fill()
   
   self.isDirty = true
