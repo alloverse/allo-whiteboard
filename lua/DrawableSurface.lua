@@ -20,10 +20,15 @@ function DrawableSurface:_init(bounds)
   -- {obj user, bool hasIntentToDraw}
   self.drawingUserControlTable = {}
 
+  -- isAllowedToDraw (bool), previous coordinate ({x, y}), brushSize, brushColor
+
   self.sr = cairo.image_surface(cairo.cairo_format("rgb24"), bounds.size.width * BOARD_RESOLUTION, bounds.size.height * BOARD_RESOLUTION)  
   self.cr = self.sr:context()
 
-  self.backgroundColor = {0.051,0.023,0.101}
+  self.backgroundColor = {1, 1, 1}
+  self.brushColor = {0.051,0.023,0.101}
+  
+  --{0.1875, 0.2578, 0.734}
 
   self:clearBoard()
 end
@@ -108,7 +113,7 @@ end
 
 function DrawableSurface:_drawAt(x, y)
   self.cr:move_to(x,y)
-  self.cr:rgb(255, 255, 255)
+  self.cr:rgb(unpack(self.brushColor))
 
   if self.previousCoordinate[1] ~= nil then
     self.cr:line_cap("round")
@@ -117,12 +122,11 @@ function DrawableSurface:_drawAt(x, y)
     self.cr:line_width(self.brushSize*2)
     self.cr:stroke()
   else 
-    -- No valid previous coordinate, don't interpolate. Instead, draw a point.
+    -- No valid previous coordinate, don't interpolate. Instead, draw a circle (point).
     self.cr:circle(x, y, self.brushSize)
     self.cr:fill()
   end
     
-  
   self.previousCoordinate[1] = x
   self.previousCoordinate[2] = y
 
@@ -132,8 +136,6 @@ end
 function DrawableSurface:broadcastTextureChanged()
   if self.app == nil then return end
 
-  -- local geom = self:specification().geometry
-  -- self:updateComponents({geometry = geom})
   local mat = self:specification().material
   self:updateComponents({material = mat})
   self.isDirty = false
