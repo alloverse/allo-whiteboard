@@ -14,6 +14,7 @@ function DrawableSurface:_init(bounds)
 
   self.isDirty = false;
   self.brushSize = 3;
+  self.previousCoordinate = {nil, nil}
 
   -- Table keeping tabs on users and if they initated intention (is allowed to draw)
   -- {obj user, bool hasIntentToDraw}
@@ -74,7 +75,13 @@ function DrawableSurface:onInteraction(inter, body, sender)
     -- No longer pointing at the board
   elseif body[1] == "poke" then
     -- set whiteboard ability to pick up "point" interactions depending on poke is true or false.
-    self.drawingUserControlTable[sender] = body[2];
+    self.drawingUserControlTable[sender] = body[2]
+
+    -- Once the poke is released, invalidate the previous coordinate as part of the chain
+    if (body[2] == false) then
+      self.previousCoordinate = {nil, nil}
+    end
+
   end
 end
 
@@ -100,10 +107,25 @@ function DrawableSurface:_attemptToDraw(sender, worldX, worldY, worldZ)
 end
 
 function DrawableSurface:_drawAt(x, y)
+  self.cr:move_to(x,y)
   self.cr:rgb(255, 255, 255)
-  self.cr:circle(x, y, self.brushSize)
-  self.cr:fill()
+
+  if self.previousCoordinate[1] ~= nil then
+    self.cr:line_cap("round")
+    --self.cr:line_join("round")
+    self.cr:line_to(self.previousCoordinate[1], self.previousCoordinate[2])
+    self.cr:line_width(self.brushSize*2)
+    self.cr:stroke()
+  else 
+    -- No valid previous coordinate, don't interpolate. Instead, draw a point.
+    self.cr:circle(x, y, self.brushSize)
+    self.cr:fill()
+  end
+    
   
+  self.previousCoordinate[1] = x
+  self.previousCoordinate[2] = y
+
   self.isDirty = true
 end
 
