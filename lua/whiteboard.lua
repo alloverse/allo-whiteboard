@@ -110,9 +110,9 @@ function Whiteboard:update()
 end
 
 function Whiteboard:resize(newWidth, newHeight)
-  self.drawableSurface:resize(newWidth, newHeight)
-
-  self:layout()
+  if self.drawableSurface:resize(newWidth, newHeight) then
+    self:layout()
+  end
 end
 
 

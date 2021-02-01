@@ -166,7 +166,7 @@ function DrawableSurface:resize(newWidth, newHeight)
   local oldWidth = self.bounds.size.width
   local oldHeight = self.bounds.size.height
 
-  if (oldWidth == newWidth and oldHeight == newHeight) then return end
+  if (oldWidth == newWidth and oldHeight == newHeight) then return false end
 
   local newCalculatedWidth = newWidth * BOARD_RESOLUTION
   local newCalculatedHeight = newHeight * BOARD_RESOLUTION
@@ -195,6 +195,8 @@ function DrawableSurface:resize(newWidth, newHeight)
   self:updateComponents(
     self:specification()
   )
+
+  return true
 end
 
 
