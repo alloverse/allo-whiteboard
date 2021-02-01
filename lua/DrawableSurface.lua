@@ -18,15 +18,15 @@ function DrawableSurface:_init(bounds)
 
   -- Table keeping tabs on users and if they initated intention (is allowed to draw)
   -- {obj user, bool hasIntentToDraw}
-  self.drawingUserControlTable = {}
+  self.accessControlTable = {}
 
   -- isAllowedToDraw (bool), previous coordinate ({x, y}), brushSize, brushColor
 
   self.sr = cairo.image_surface(cairo.cairo_format("rgb24"), bounds.size.width * BOARD_RESOLUTION, bounds.size.height * BOARD_RESOLUTION)  
   self.cr = self.sr:context()
 
-  self.backgroundColor = {1, 1, 1}
-  self.brushColor = {0.051,0.023,0.101}
+  self.backgroundColor = {0.051,0.023,0.101}
+  self.brushColor = {1, 1, 1}
   
   --{0.1875, 0.2578, 0.734}
 
@@ -80,7 +80,7 @@ function DrawableSurface:onInteraction(inter, body, sender)
     -- No longer pointing at the board
   elseif body[1] == "poke" then
     -- set whiteboard ability to pick up "point" interactions depending on poke is true or false.
-    self.drawingUserControlTable[sender] = body[2]
+    self.accessControlTable[sender] = body[2]
 
     -- Once the poke is released, invalidate the previous coordinate as part of the chain
     if (body[2] == false) then
@@ -94,7 +94,7 @@ end
 function DrawableSurface:_attemptToDraw(sender, worldX, worldY, worldZ)
   
   -- Checks if the user is allowed to draw
-  if (self.drawingUserControlTable[sender] ~= true ) then return end
+  if (self.accessControlTable[sender] ~= true ) then return end
   
   local worldPoint = vec3(worldX, worldY, worldZ)
   local inverted = mat4.invert({}, self:transformFromWorld())
