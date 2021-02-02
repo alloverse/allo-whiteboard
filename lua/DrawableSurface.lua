@@ -14,21 +14,15 @@ function DrawableSurface:_init(bounds)
 
   self.isDirty = false;
   self.brushSize = 3;
-  self.previousCoordinate = {nil, nil}
 
   -- Table keeping tabs on users and if they initated intention (is allowed to draw)
-  -- {obj user, bool hasIntentToDraw}
   self.accessControlTable = {}
-
-  -- isAllowedToDraw (bool), previous coordinate ({x, y}), brushSize, brushColor
 
   self.sr = cairo.image_surface(cairo.cairo_format("rgb24"), bounds.size.width * BOARD_RESOLUTION, bounds.size.height * BOARD_RESOLUTION)  
   self.cr = self.sr:context()
 
   self.backgroundColor = {0.051,0.023,0.101}
   self.brushColor = {1, 1, 1}
-  
-  --{0.1875, 0.2578, 0.734}
 
   self:clearBoard()
 end
@@ -73,29 +67,33 @@ function DrawableSurface:specification()
 end
 
 function DrawableSurface:onInteraction(inter, body, sender)
+  local currentControlTable = self.accessControlTable[sender]
+  
   if body[1] == "point" then
-    -- Pointing at the board
+    -- Sender is pointing at the board, attempt to draw at the coordinate they're pointing
     self:_attemptToDraw(sender, body[3][1], body[3][2], body[3][3]);
   elseif body[1] == "point-exit" then
-    -- No longer pointing at the board
+    -- Sender is no longer pointing at the board - terminate their chain of previous coordinates
+    if currentControlTable==nil then return end
+    currentControlTable.previousCoord = {nil, nil}
   elseif body[1] == "poke" then
-    -- set whiteboard ability to pick up "point" interactions depending on poke is true or false.
-    self.accessControlTable[sender] = body[2]
+    -- A poke initiates the senders' intention to interact with the board
+    -- Create their unique entry into the accessControlTable and set their "allowedToDraw" flag based on wether they pushed or released the poke.
+    self.accessControlTable[sender] = {allowedToDraw = body[2], previousCoord={x=nil, y=nil}}
 
-    -- Once the poke is released, invalidate the previous coordinate as part of the chain
+    -- If the poke is released, terminate their chain of previous coordinates
     if (body[2] == false) then
-      self.previousCoordinate = {nil, nil}
+      currentControlTable.previousCoord = {nil, nil}
     end
-
   end
 end
 
-
 function DrawableSurface:_attemptToDraw(sender, worldX, worldY, worldZ)
-  
-  -- Checks if the user is allowed to draw
-  if (self.accessControlTable[sender] ~= true ) then return end
-  
+  local currentControlTable = self.accessControlTable[sender]
+
+  -- If the user hasn't poked the board, they don't have an entry in the accessControlTable and thus we don't need to try to draw.
+  if (currentControlTable == nil or currentControlTable.allowedToDraw == false ) then return end
+
   local worldPoint = vec3(worldX, worldY, worldZ)
   local inverted = mat4.invert({}, self:transformFromWorld())
   
@@ -107,28 +105,29 @@ function DrawableSurface:_attemptToDraw(sender, worldX, worldY, worldZ)
   -- print("localPoint (center origo)...........", localPoint)
   -- print("localPointBottomLeftOrigo...........", localPointBottomLeftOrigo)
 
-  self:_drawAt( localPointBottomLeftOrigo.x * BOARD_RESOLUTION, 
-                localPointBottomLeftOrigo.y * BOARD_RESOLUTION)
+  self:_drawAt(sender, localPointBottomLeftOrigo.x * BOARD_RESOLUTION, localPointBottomLeftOrigo.y * BOARD_RESOLUTION)
 end
 
-function DrawableSurface:_drawAt(x, y)
+function DrawableSurface:_drawAt(sender, x, y)
+  local currentControlTable = self.accessControlTable[sender]
+
   self.cr:move_to(x,y)
   self.cr:rgb(unpack(self.brushColor))
 
-  if self.previousCoordinate[1] ~= nil then
+  if currentControlTable.previousCoord.x ~= nil then
+    -- There's a set of valid previous coordinates, to draw a line from them to the current coordinate.
     self.cr:line_cap("round")
-    --self.cr:line_join("round")
-    self.cr:line_to(self.previousCoordinate[1], self.previousCoordinate[2])
+    self.cr:line_to(currentControlTable.previousCoord.x, currentControlTable.previousCoord.y)
     self.cr:line_width(self.brushSize*2)
     self.cr:stroke()
   else 
-    -- No valid previous coordinate, don't interpolate. Instead, draw a circle (point).
+    -- There's no valid previous coordinate, so don't interpolate. Instead, draw a circle (point).
     self.cr:circle(x, y, self.brushSize)
     self.cr:fill()
   end
-    
-  self.previousCoordinate[1] = x
-  self.previousCoordinate[2] = y
+  
+  currentControlTable.previousCoord.x = x
+  currentControlTable.previousCoord.y = y
 
   self.isDirty = true
 end
