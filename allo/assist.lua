@@ -18,7 +18,7 @@ function fetch(targetVersion)
     local currentVersion = trim(readfile(cachefilepath))
     local plats = {
         ["Allonet-Linux-x64"]=   { path="Allonet-Linux-x64/build/liballonet.so", dest="lib/linux64/liballonet.so" },
-        ["Allonet-Windows-x64"]= { path="Allonet-Windows-x64/build/Debug/allonet.dll", dest="lib/win64/liballonet.dll"},
+        ["Allonet-Windows-x64"]= { path="Allonet-Windows-x64/build/Release/allonet.dll", dest="lib/win64/liballonet.dll"},
         ["Allonet-Mac-x64"]=     { path="Allonet-Mac-x64/build/liballonet.dylib", dest="lib/osx64/liballonet.dylib"}
     }
     if 
