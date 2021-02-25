@@ -21,6 +21,7 @@ function Whiteboard:_init(bounds)
   self.half_width = self.drawableSurface.bounds.size.width/2
   self.half_height = self.drawableSurface.bounds.size.height/2
   self.BUTTON_SIZE = 0.2
+  self.SMALL_BUTTON_SIZE = 0.12
   self.BUTTON_DEPTH = 0.05
   self.SPACING = 0.05
   self.FRAME_THICKNESS = 0.025
@@ -28,6 +29,8 @@ function Whiteboard:_init(bounds)
 
   self.PI = 3.14159
   
+
+
   -- FRAME
   self.frame = ui.Surface(ui.Bounds{size=ui.Size( self.drawableSurface.bounds.size.width + self.FRAME_THICKNESS*2,
                                                   self.drawableSurface.bounds.size.height + self.FRAME_THICKNESS*2,
@@ -44,11 +47,14 @@ function Whiteboard:_init(bounds)
   self:addSubview(self.controlPanel)
 
   -- RESIZE HANDLE
-  self.resizeHandle = ui.ResizeHandle(ui.Bounds(self.half_width+self.SPACING, self.half_height+self.SPACING, 0, self.BUTTON_SIZE, self.BUTTON_SIZE, self.BUTTON_DEPTH), {1, 1, 0}, {0, 0, 0})
+  self.resizeHandle = ui.ResizeHandle(ui.Bounds(self.half_width-self.SMALL_BUTTON_SIZE/2, self.half_height-self.SMALL_BUTTON_SIZE/2, 0.005, self.SMALL_BUTTON_SIZE, self.SMALL_BUTTON_SIZE, 0.001), {1, 1, 0}, {0, 0, 0})
   self:addSubview(self.resizeHandle)
 
   -- QUIT BUTTON
-  self.quitButton = ui.Button(ui.Bounds{size=ui.Size(0.12,0.12,self.BUTTON_DEPTH)}:move( 0.52,0.25,self.BUTTON_DEPTH/2))
+  self.quitButton = ui.Button(ui.Bounds{size=ui.Size(
+      self.SMALL_BUTTON_SIZE,
+      self.SMALL_BUTTON_SIZE,
+      self.BUTTON_DEPTH)})
   self.quitButton:setDefaultTexture(Whiteboard.assets.quit)
   self.quitButton.onActivated = function()
     self.app:quit()
@@ -79,7 +85,7 @@ function Whiteboard:_init(bounds)
     self.drawableSurface:setBrushSize(self.drawableSurface.brushSize + 1)
   end
   self.controlPanel:addSubview(self.brushSizeUpButton)
-  
+
   self:layout()
 end
 
@@ -93,20 +99,10 @@ function Whiteboard:update()
     local m = mat4.new(self.resizeHandle.entity.components.transform.matrix) -- looks at the resizeHandle's position
     local resizeHandlePosition = m * vec3(0,0,0)
 
-    --keeps aspect ratio
-    --local boardAspectRatio = self.drawableSurface.bounds.size.height/self.drawableSurface.bounds.size.width
-    --print("boardAspectRatio", boardAspectRatio)
-    --resizeHandlePosition.x = resizeHandlePosition.y * boardAspectRatio
+    local newWidth = resizeHandlePosition.x*2 + self.SMALL_BUTTON_SIZE
+    local newHeight = resizeHandlePosition.y*2 + self.SMALL_BUTTON_SIZE
 
-    -- TODO: How do I control the resizeHandle's position here so I can make sure it follows the aspect ratio?
-    -- Or, I guess, where do you think I should control the movement of the button?
-    --self.resizeHandle:updateComponents({cursor = c})
-
-
-    local newWidth = resizeHandlePosition.x*2 - self.SPACING*2
-    local newHeight = resizeHandlePosition.y*2 - self.SPACING*2
-
-    if newWidth <= 1.13 then newWidth = 1.13 end
+    if newWidth <= 1.2 then newWidth = 1.2 end
     if newHeight <= 0.5 then newHeight = 0.5 end
 
     self:resize(newWidth, newHeight)
@@ -123,19 +119,12 @@ function Whiteboard:resize(newWidth, newHeight)
 end
 
 
--- TODO: Don't run layout every frame, only when re-layouting is actually necessary
--- i.e (when the resizeHandle has been moved)
-
 function Whiteboard:layout()
-  -- Set correct position of all UI elements in relation to the drawableSurface
-  
+  print("Re-layouting")
+
+  -- Set correct position of all UI elements in relation to the drawableSurface  
   self.half_width = self.drawableSurface.bounds.size.width/2
   self.half_height = self.drawableSurface.bounds.size.height/2
-
-  -- print("size", unpack(self.bounds.size))
-  -- print("w", self.bounds.size.width)
-  -- print("h", self.bounds.size.height)
-  -- print("d", self.bounds.size.depth)
 
   self.frame:setBounds(ui.Bounds{
       size= ui.Size(
@@ -144,7 +133,6 @@ function Whiteboard:layout()
         self.drawableSurface.bounds.size.depth)
       }:move(0,0,-0.001))
     
-  
   --print("controlPanel width:", self.drawableSurface.bounds.size.width + self.FRAME_THICKNESS*2)
   self.controlPanel:setBounds(ui.Bounds{
     size= ui.Size(
@@ -152,17 +140,14 @@ function Whiteboard:layout()
       self.BUTTON_SIZE + self.FRAME_THICKNESS*2, 
       0.05)
   }:rotate(-self.PI/4, 1, 0, 0):move(0,-self.half_height-self.BUTTON_SIZE/2-self.FRAME_THICKNESS, self.BUTTON_SIZE/2-self.FRAME_THICKNESS))
-  --self.controlPanel:setColor({0.4, 1, 1, 1})
-
-
+  
   -- Buttons laid out in relation to their parent: the controlPanel
-  self.clearButton:setBounds(ui.Bounds{pose=ui.Pose(-self.controlPanel.bounds.size.width/2+self.BUTTON_SIZE/2, 0, self.BUTTON_DEPTH/2), size=self.clearButton.bounds.size})
-  self.brushSizeDownButton:setBounds(ui.Bounds{pose=ui.Pose(self.controlPanel.bounds.size.width/2-self.BUTTON_SIZE/2-self.BUTTON_SIZE-self.SPACING, 0, self.BUTTON_DEPTH/2), size=self.brushSizeDownButton.bounds.size})  
-  self.brushSizeUpButton:setBounds(ui.Bounds{pose=ui.Pose(self.controlPanel.bounds.size.width/2-self.BUTTON_SIZE/2, 0, self.BUTTON_DEPTH/2), size=self.brushSizeUpButton.bounds.size})
+  self.clearButton:setBounds(ui.Bounds{pose=ui.Pose(-self.controlPanel.bounds.size.width/2+self.BUTTON_SIZE/2+self.FRAME_THICKNESS, 0, self.BUTTON_DEPTH/2), size=self.clearButton.bounds.size})
+  self.brushSizeDownButton:setBounds(ui.Bounds{pose=ui.Pose(self.controlPanel.bounds.size.width/2-self.BUTTON_SIZE/2-self.BUTTON_SIZE-self.FRAME_THICKNESS-self.SPACING, 0, self.BUTTON_DEPTH/2), size=self.brushSizeDownButton.bounds.size})  
+  self.brushSizeUpButton:setBounds(ui.Bounds{pose=ui.Pose(self.controlPanel.bounds.size.width/2-self.BUTTON_SIZE/2-self.FRAME_THICKNESS, 0, self.BUTTON_DEPTH/2), size=self.brushSizeUpButton.bounds.size})
 
   -- Leftovers
-  self.quitButton:setBounds(ui.Bounds{pose=ui.Pose(self.half_width+self.SPACING - self.BUTTON_SIZE, self.half_height+self.SPACING, 0.05), size=self.quitButton.bounds.size})
-  
+  self.quitButton:setBounds(ui.Bounds{pose=ui.Pose(self.half_width - self.SMALL_BUTTON_SIZE/2, self.half_height+self.SPACING + self.SMALL_BUTTON_SIZE/2, self.BUTTON_DEPTH/2), size=self.quitButton.bounds.size})
 end
 
 return Whiteboard
