@@ -36,6 +36,17 @@ package.path = package.path
 require("liballonet")
 Client = require("alloui.client")
 ui = require("alloui.ui")
+class = require('pl.class')
+tablex = require('pl.tablex')
+pretty = require('pl.pretty')
+vec3 = require("modules.vec3")
+mat4 = require("modules.mat4")
+
+ui.App.initialLocation = nil
+if arg[3] then
+    local x, y, z = string.match(arg[3], "([-+\\.%d]+),([-+\\.%d]+),([-+\\.%d]+)")
+    ui.App.initialLocation = vec3(tonumber(x), tonumber(y), tonumber(z))
+end
 
 -- start app
 require("main")

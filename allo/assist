@@ -32,7 +32,7 @@ do_fetch () {
 }
 
 do_run () {
-    $LUAJIT $HERE/boot.lua $HERE/.. $1
+    $LUAJIT $HERE/boot.lua $HERE/.. $*
 }
 
 if [ "$#" -lt 1 ]; then
@@ -53,7 +53,7 @@ case $1 in
             do_help
             exit
         fi
-        do_run $2
+        do_run "${@:2}"
     ;;
     * )
         do_help
