@@ -5,9 +5,11 @@ local vec3 = require("modules.vec3")
 local mat4 = require("modules.mat4")
 local pretty = require('pl.pretty')
 
+local ffi = require('ffi')
+
 local BOARD_RESOLUTION = 128
 
-class.DrawableSurface(ui.View)
+class.DrawableSurface(ui.VideoSurface)
 
 function DrawableSurface:_init(bounds)
   self:super(bounds)
@@ -28,18 +30,10 @@ function DrawableSurface:_init(bounds)
 end
 
 function DrawableSurface:specification()
-  self.sr:save_png("whiteboard.png")
-
-  local fh = io.open("whiteboard.png", "rb")
-  local image_to_convert = fh:read("*a")
-  fh:close()
-  local encoded_image = ui.util.base64_encode(image_to_convert)
-
   local s = self.bounds.size
   local w2 = s.width / 2.0
   local h2 = s.height / 2.0
-  local d2 = s.depth / 2.0
-  local mySpec = tablex.union(ui.View.specification(self), {
+  local mySpec = tablex.union(ui.VideoSurface.specification(self), {
       geometry = {
           type = "inline",
           --          #tl?                #tr?              #bl?               #br?
@@ -50,9 +44,6 @@ function DrawableSurface:specification()
       collider= {
           type= "box",
           width= s.width, height= s.height, depth= s.depth
-      },
-      material= {
-        texture= encoded_image
       },
       grabbable = {
         grabbable = true,
@@ -130,14 +121,18 @@ function DrawableSurface:_drawAt(sender, x, y)
   currentControlTable.previousCoord.y = y
 
   self.isDirty = true
+
+  self:broadcastTextureChanged()
 end
 
 function DrawableSurface:broadcastTextureChanged()
   if self.app == nil then return end
-
-  local mat = self:specification().material
-  self:updateComponents({material = mat})
   self.isDirty = false
+  if self.trackId then
+    self.sr:flush()
+    local bitmap = self.sr:bitmap()
+    self.app.client.client:send_video(self.trackId, ffi.string(bitmap.data), bitmap.w, bitmap.h, 1, bitmap.stride)
+  end
 end
 
 function DrawableSurface:sendIfDirty()
