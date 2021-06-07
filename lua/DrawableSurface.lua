@@ -127,7 +127,7 @@ function DrawableSurface:broadcastTextureChanged()
   if self.trackId then
     self.sr:flush()
     local bitmap = self.sr:bitmap()
-    self.app.client.client:send_video(self.trackId, ffi.string(bitmap.data), bitmap.w, bitmap.h, 1, bitmap.stride)
+    self.app.client.client:send_video(self.trackId, ffi.string(bitmap.data), bitmap.w, bitmap.h, bitmap.format, bitmap.stride)
   end
 end
 
