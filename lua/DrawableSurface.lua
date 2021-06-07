@@ -20,27 +20,23 @@ function DrawableSurface:_init(bounds)
   -- Table keeping tabs on users and if they initated intention (is allowed to draw)
   self.accessControlTable = {}
 
-  self.sr = cairo.image_surface(cairo.cairo_format("rgb24"), bounds.size.width * BOARD_RESOLUTION, bounds.size.height * BOARD_RESOLUTION)  
+  local width = bounds.size.width * BOARD_RESOLUTION
+  local height = bounds.size.height * BOARD_RESOLUTION
+  self.sr = cairo.image_surface(cairo.cairo_format("rgb24"), width, height)
   self.cr = self.sr:context()
+
+  self:setResolution(width, height)
 
   self.backgroundColor = {0.051,0.023,0.101}
   self.brushColor = {1, 1, 1}
+
 
   self:clearBoard()
 end
 
 function DrawableSurface:specification()
   local s = self.bounds.size
-  local w2 = s.width / 2.0
-  local h2 = s.height / 2.0
-  local mySpec = tablex.union(ui.VideoSurface.specification(self), {
-      geometry = {
-          type = "inline",
-          --          #tl?                #tr?              #bl?               #br?
-          vertices=   {{-w2, h2, 0.0},    {w2, h2, 0.0},    {-w2, -h2, 0.0},   {w2, -h2, 0.0}},
-          uvs=        {{0.0, 0.0},        {1.0, 0.0},       {0.0, 1.0},        {1.0, 1.0}},
-          triangles=  {{0, 1, 3},         {3, 2, 0},        {0, 2, 3},         {3, 1, 0}},
-      },
+  local mySpec = {
       collider= {
           type= "box",
           width= s.width, height= s.height, depth= s.depth
@@ -53,8 +49,8 @@ function DrawableSurface:specification()
         name= "brushCursor",
         size= self.brushSize
       }
-  })
-  return mySpec
+  }
+  return tablex.union(ui.VideoSurface.specification(self), mySpec)
 end
 
 function DrawableSurface:onInteraction(inter, body, sender)
@@ -172,6 +168,8 @@ function DrawableSurface:resize(newWidth, newHeight)
   
   local newsr = cairo.image_surface(cairo.cairo_format("rgb24"), newCalculatedWidth, newCalculatedHeight)  
   local newcr = newsr:context()
+
+  self:setResolution(newCalculatedWidth, newCalculatedHeight)
 
   newcr:rgb(unpack(self.backgroundColor))
   newcr:paint()
