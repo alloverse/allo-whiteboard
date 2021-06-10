@@ -7,7 +7,7 @@ local pretty = require('pl.pretty')
 
 local ffi = require('ffi')
 
-local BOARD_RESOLUTION = 128
+local BOARD_RESOLUTION = 512
 
 class.DrawableSurface(ui.VideoSurface)
 

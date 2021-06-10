@@ -25,7 +25,8 @@ whiteboard:update()
 
 -- Checks whiteboard refresh 20 times per second
 app:scheduleAction(0.05, true, function()
-  
+    
+    whiteboard:update()
 
 end)
 
