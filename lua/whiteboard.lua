@@ -108,7 +108,7 @@ function Whiteboard:update()
     self:resize(newWidth, newHeight)
   end
 
-  self.drawableSurface:sendIfDirty()
+  self.drawableSurface:broadcastTextureChanged()
 
 end
 

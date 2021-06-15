@@ -14,7 +14,6 @@ class.DrawableSurface(ui.VideoSurface)
 function DrawableSurface:_init(bounds)
   self:super(bounds)
 
-  self.isDirty = false;
   self.brushSize = 3;
 
   -- Table keeping tabs on users and if they initated intention (is allowed to draw)
@@ -116,25 +115,15 @@ function DrawableSurface:_drawAt(sender, x, y)
   currentControlTable.previousCoord.x = x
   currentControlTable.previousCoord.y = y
 
-  self.isDirty = true
-
   self:broadcastTextureChanged()
 end
 
 function DrawableSurface:broadcastTextureChanged()
-  if self.app == nil then return end
-  self.isDirty = false
   if self.trackId then
     self.sr:flush()
     local bitmap = self.sr:bitmap()
     local bpp = bitmap.stride / bitmap.w
     self:sendFrame(ffi.string(bitmap.data, (bitmap.stride/bpp) * bitmap.h * bpp), bitmap.w, bitmap.h, bitmap.format, bitmap.stride)
-  end
-end
-
-function DrawableSurface:sendIfDirty()
-  if self.isDirty then
-    self:broadcastTextureChanged()
   end
 end
 
