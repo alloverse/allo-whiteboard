@@ -148,23 +148,22 @@ function DrawableSurface:resize(newWidth, newHeight, commit)
 
   if (oldWidth == newWidth and oldHeight == newHeight) then return false end
 
-  local newCalculatedWidth = math.floor(newWidth * BOARD_RESOLUTION + 0.5)
-  local newCalculatedHeight = math.floor(newHeight * BOARD_RESOLUTION + 0.5)
-  local oldCalculatedWidth = oldWidth * BOARD_RESOLUTION
-  local oldCalculatedHeight = oldHeight * BOARD_RESOLUTION
-
   if commit then
     print("committing to new size")
-    local newSourceX = ((newCalculatedWidth - oldCalculatedWidth)/2)
-    local newSourceY = ((newCalculatedHeight - oldCalculatedHeight)/2)
+
+    local newResX = math.floor(newWidth * BOARD_RESOLUTION + 0.5)
+    local newResY = math.floor(newHeight * BOARD_RESOLUTION + 0.5)
     
-    local newsr = cairo.image_surface(cairo.cairo_format("rgb24"), newCalculatedWidth, newCalculatedHeight)  
+    local newsr = cairo.image_surface(cairo.cairo_format("rgb24"), newResX, newResY)  
     local newcr = newsr:context()
 
-    self:setResolution(newCalculatedWidth, newCalculatedHeight)
+    self:setResolution(newResX, newResY)
 
     newcr:rgb(unpack(self.backgroundColor))
     newcr:paint()
+
+    local newSourceX = (newResX - self.sr:width())/2
+    local newSourceY = (newResY - self.sr:height())/2
 
     newcr:source(self.sr, newSourceX, newSourceY)
 
