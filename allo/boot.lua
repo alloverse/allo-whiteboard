@@ -34,6 +34,15 @@ package.path = package.path
     
 -- Establish globals
 require("liballonet")
+local ffi = require 'ffi'
+local av = ffi.load("/Users/voxar/work/Alloverse/apps/allo-whiteboard/allo/lib/liballonet_av.dylib", true)
+ffi.load("/Users/voxar/work/Alloverse/apps/allo-whiteboard/allo/lib/liballonet.dylib", true)
+ ffi.cdef [[
+   void allo_libav_initialize(void);
+ ]]
+ ffi.C.allo_libav_initialize()
+ 
+ 
 Client = require("alloui.client")
 ui = require("alloui.ui")
 class = require('pl.class')
