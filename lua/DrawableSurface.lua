@@ -141,10 +141,9 @@ function DrawableSurface:setBrushSize(newbrushSize)
   self:updateComponents({cursor = c})
 end
 
-function DrawableSurface:resize(newWidth, newHeight)
-
-  local oldWidth = self.bounds.size.width
-  local oldHeight = self.bounds.size.height
+function DrawableSurface:resize(newWidth, newHeight, commit)
+  local oldWidth = math.floor(self.bounds.size.width + 0.5)
+  local oldHeight = math.floor(self.bounds.size.height + 0.5)
 
   if (oldWidth == newWidth and oldHeight == newHeight) then return false end
 
@@ -153,23 +152,26 @@ function DrawableSurface:resize(newWidth, newHeight)
   local oldCalculatedWidth = oldWidth * BOARD_RESOLUTION
   local oldCalculatedHeight = oldHeight * BOARD_RESOLUTION
 
-  local newSourceX = math.floor(((newCalculatedWidth - oldCalculatedWidth)/2)+0.5)
-  local newSourceY = math.floor(((newCalculatedHeight - oldCalculatedHeight)/2)+0.5)
-  
-  local newsr = cairo.image_surface(cairo.cairo_format("rgb24"), newCalculatedWidth, newCalculatedHeight)  
-  local newcr = newsr:context()
+  if commit then
+    print("committing to new size")
+    local newSourceX = math.floor(((newCalculatedWidth - oldCalculatedWidth)/2)+0.5)
+    local newSourceY = math.floor(((newCalculatedHeight - oldCalculatedHeight)/2)+0.5)
+    
+    local newsr = cairo.image_surface(cairo.cairo_format("rgb24"), newCalculatedWidth, newCalculatedHeight)  
+    local newcr = newsr:context()
 
-  self:setResolution(newCalculatedWidth, newCalculatedHeight)
+    self:setResolution(newCalculatedWidth, newCalculatedHeight)
 
-  newcr:rgb(unpack(self.backgroundColor))
-  newcr:paint()
+    newcr:rgb(unpack(self.backgroundColor))
+    newcr:paint()
 
-  newcr:source(self.sr, newSourceX, newSourceY)
+    newcr:source(self.sr, newSourceX, newSourceY)
 
-  self.sr = newsr
-  self.cr = newcr
-  
-  self.cr:paint()
+    self.sr = newsr
+    self.cr = newcr
+    
+    self.cr:paint()
+  end
 
   self.bounds.size.width = newWidth
   self.bounds.size.height = newHeight 

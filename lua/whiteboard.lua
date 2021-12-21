@@ -3,6 +3,10 @@ local mat4 = require("modules.mat4")
 local class = require('pl.class')
 local DrawableSurface = require("DrawableSurface")
 
+STATE_ACTIVE = 1
+STATE_STANDBY = 2
+STATE_IDLE = 3
+
 class.Whiteboard(ui.View)
 
 Whiteboard.assets = {
@@ -29,7 +33,8 @@ function Whiteboard:_init(bounds)
 
   self.PI = 3.14159
   
-
+  self.state = STATE_ACTIVE -- starts active to push initial frames immediately
+  self.resizeState = nil
 
   -- FRAME
   self.frame = ui.Surface(ui.Bounds{size=ui.Size( self.drawableSurface.bounds.size.width + self.FRAME_THICKNESS*2,
@@ -94,26 +99,47 @@ function Whiteboard:specification()
 end
 
 function Whiteboard:update()
-
   if self.resizeHandle.entity ~= nil then 
-    local m = mat4.new(self.resizeHandle.entity.components.transform.matrix) -- looks at the resizeHandle's position
-    local resizeHandlePosition = m * vec3(0,0,0)
 
-    local newWidth = resizeHandlePosition.x*2 + self.SMALL_BUTTON_SIZE
-    local newHeight = resizeHandlePosition.y*2 + self.SMALL_BUTTON_SIZE
+    if not self.resizeState and self.resizeHandle.active then
+      -- Start a resize attempt
+      print("Start resize")
+      self.resizeState = true
+    elseif self.resizeState and not self.resizeHandle.active then 
+      print("End resize")
+      -- Commit a resize attempt
+      local m = mat4.new(self.resizeHandle.entity.components.transform.matrix) -- looks at the resizeHandle's position
+      local resizeHandlePosition = m * vec3(0,0,0)
 
-    if newWidth <= 1.2 then newWidth = 1.2 end
-    if newHeight <= 0.5 then newHeight = 0.5 end
+      local newWidth = resizeHandlePosition.x*2 + self.SMALL_BUTTON_SIZE
+      local newHeight = resizeHandlePosition.y*2 + self.SMALL_BUTTON_SIZE
 
-    self:resize(newWidth, newHeight)
+      if newWidth <= 1.2 then newWidth = 1.2 end
+      if newHeight <= 0.5 then newHeight = 0.5 end
+      self:resize(newWidth, newHeight, true)
+      self.resizeState = nil
+    elseif self.resizeState and self.resizeHandle.active then
+      print("update resize")
+      -- animate resize attempt
+      local m = mat4.new(self.resizeHandle.entity.components.transform.matrix) -- looks at the resizeHandle's position
+      local resizeHandlePosition = m * vec3(0,0,0)
+
+      local newWidth = resizeHandlePosition.x*2 + self.SMALL_BUTTON_SIZE
+      local newHeight = resizeHandlePosition.y*2 + self.SMALL_BUTTON_SIZE
+
+      if newWidth <= 1.2 then newWidth = 1.2 end
+      if newHeight <= 0.5 then newHeight = 0.5 end
+      self:resize(newWidth, newHeight, false)
+    end
   end
 
-  self.drawableSurface:broadcastTextureChanged()
-
+  if not self.resizeState then 
+    self.drawableSurface:broadcastTextureChanged()
+  end
 end
 
-function Whiteboard:resize(newWidth, newHeight)
-  if self.drawableSurface:resize(newWidth, newHeight) then
+function Whiteboard:resize(newWidth, newHeight, commit)
+  if self.drawableSurface:resize(newWidth, newHeight, commit) then
     self:layout()
   end
 end
