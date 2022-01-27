@@ -52,7 +52,7 @@ function DrawableSurface:specification()
         size= self.brushSize
       }
   }
-  return tablex.union(ui.VideoSurface.specification(self), mySpec)
+  return tablex.union(ui.View.specification(self), mySpec)
 end
 
 function DrawableSurface:onInteraction(inter, body, sender)
