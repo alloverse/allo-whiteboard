@@ -6,7 +6,7 @@ local libDir = projHome.."/allo/lib"
 
 function os.system(cmd, notrim)
     local f = assert(io.popen(cmd, 'r'))
-    local s = assert(f:read('*a'))
+    local s = assert(f:read('*l'))
     f:close()
     if notrim then return s end
     s = string.gsub(s, '^%s+', '')
@@ -18,13 +18,16 @@ function os.uname()
     return os.system("uname -s")
 end
 
+local dylibext = ""
 if os.uname():find("^Darwin") ~= nil then
-    package.cpath = package.cpath..";"..libDir.."/?.dylib"
+    dylibext = "dylib"
 elseif string.match(package.cpath, "so") then
-    package.cpath = package.cpath..";"..libDir.."/?.so"
+    dylibext = "so"
 elseif string.match(package.cpath, "dll") then
-    package.cpath = package.cpath..";"..libDir.."/?.dll"
+    dylibext = "dll"
 end
+
+package.cpath = package.cpath..";"..libDir.."/?."..dylibext
 
 package.path = package.path
     ..";"..srcDir.."/?.lua"
@@ -35,13 +38,18 @@ package.path = package.path
 -- Establish globals
 require("liballonet")
 local ffi = require 'ffi'
-local av = ffi.load("/Users/voxar/work/Alloverse/apps/allo-whiteboard/allo/lib/liballonet_av.dylib", true)
-ffi.load("/Users/voxar/work/Alloverse/apps/allo-whiteboard/allo/lib/liballonet.dylib", true)
- ffi.cdef [[
-   void allo_libav_initialize(void);
- ]]
- ffi.C.allo_libav_initialize()
- 
+local libav_available, av = pcall(ffi.load, libDir .. "/liballonet_av."..dylibext, true)
+if not libav_available then
+    av = nil
+    print("NOTE: liballonet_av not available, h264 cannot be used")
+else
+    print("liballonet_av loaded with libavcodec support")
+    ffi.load(libDir .. "/liballonet."..dylibext, true)
+    ffi.cdef [[
+    void allo_libav_initialize(void);
+    ]]
+    ffi.C.allo_libav_initialize()
+end
  
 Client = require("alloui.client")
 ui = require("alloui.ui")
@@ -52,6 +60,7 @@ vec3 = require("modules.vec3")
 mat4 = require("modules.mat4")
 
 ui.App.initialLocation = nil
+ui.VideoSurface.libavAvailable = libav_available
 if arg[3] then
     local ms = {string.match(arg[3], "([-+\\.%d]+), ([-+\\.%d]+), ([-+\\.%d]+), ([-+\\.%d]+), ([-+\\.%d]+), ([-+\\.%d]+), ([-+\\.%d]+), ([-+\\.%d]+), ([-+\\.%d]+), ([-+\\.%d]+), ([-+\\.%d]+), ([-+\\.%d]+), ([-+\\.%d]+), ([-+\\.%d]+), ([-+\\.%d]+), ([-+\\.%d]+)")}
     local x, y, z = string.match(arg[3], "([-+\\.%d]+),([-+\\.%d]+),([-+\\.%d]+)")
