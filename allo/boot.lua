@@ -39,7 +39,7 @@ local libav_available, av = pcall(ffi.load, libDir .. "/liballonet_av."..dylibex
 if libav_available then
     -- loads allonet via weak linking
     print("liballonet_av loaded with libavcodec support")
-    ffi.load(libDir .. "/liballonet."..dylibext, false)
+    allonet = ffi.load(libDir .. "/liballonet."..dylibext, false)
     ffi.cdef [[
     void allo_libav_initialize(void);
     ]]
